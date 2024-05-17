@@ -1,0 +1,7 @@
+bot: 
+  start:
+    text: ""
+    already_reg: "Вы уже зарегистрированы"
+  
+  help:
+    text: ""
