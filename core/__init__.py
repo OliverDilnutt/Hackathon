@@ -55,7 +55,7 @@ logging.basicConfig(
 config_path = os.path.join(os.getcwd(), "config.yaml")
 try:
     with open(config_path, encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+        config = yaml.safe_load(f)
 except yaml.YAMLError as e:
     print(f"Ошибка при загрузке файла config.yaml: \n{e}")
     logging.critical(f"Ошибка при загрузке файла config.yaml: \n{e}")
@@ -79,6 +79,6 @@ base.metadata.create_all(engine)
 
 
 # Инициализация бота
-bot = AsyncTeleBot(data["secret"]["telegram_token"])
+bot = AsyncTeleBot(config["secret"]["telegram_token"])
 logging.info("Бот запущен")
-print(messages["models"]["start"]["text"])
+print('Бот запущен')

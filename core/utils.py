@@ -6,7 +6,7 @@ from sqlalchemy import func
 from datetime import datetime, timedelta
 import asyncio
 
-from core import data, logging, messages, bot
+from core import config, logging, messages, bot
 from core.database import User, Session
 
 
@@ -20,7 +20,7 @@ async def generate_markup(buttons):
 
 # Отправка сообщения владельцу бота
 async def owner_send(message):
-    await bot.send_message(data["secret"]["owner_id"], message)
+    await bot.send_message(config["secret"]["owner_id"], message)
 
 
 async def new_user(message):

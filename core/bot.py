@@ -1,6 +1,5 @@
 from core import bot, messages, logging
-from core.utils import generate_markup
-from core.database import new_user
+from core.utils import generate_markup, new_user
 
 
 @bot.message_handler(commands=["start"])

@@ -3,3 +3,8 @@ main:
 secret:
   owner_id: OWNER_ID
   telegram_token: TELEGRAM_TOKEN
+engine:
+  hunger_index: 1
+  sadness_index: 1
+  pet_tasks_time: 15
+  time_of_last_check: None
