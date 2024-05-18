@@ -1,10 +1,12 @@
+engine:
+  hunger_index: 1
+  pet_tasks_time: 15
+  sadness_index: 1
+  time_of_last_check: '2024-05-18T15:08:00.650620'
+  play_index: 5
+  play_sad_index: 15
 main:
   db_path: db.sqlite
 secret:
   owner_id: OWNER_ID
   telegram_token: TELEGRAM_TOKEN
-engine:
-  hunger_index: 1
-  sadness_index: 1
-  pet_tasks_time: 15
-  time_of_last_check: None

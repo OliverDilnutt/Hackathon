@@ -29,6 +29,7 @@ class Pet(base):
     health = db.Column(db.Integer, default=100)
     born = db.Column(db.String, default=datetime.now())
     death = db.Column(db.String, nullable=True)
+    last_game = db.Column(db.String, nullable=True)
     status = db.Column(db.Integer, default='live')
 
 

@@ -5,3 +5,8 @@ bot:
   
   help:
     text: ""
+
+
+state:
+  live: Живой
+  dead: Умер
