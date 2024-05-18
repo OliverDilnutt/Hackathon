@@ -5,6 +5,8 @@ engine:
   time_of_last_check: '2024-05-18T15:08:00.650620'
   play_index: 5
   play_sad_index: 15
+  break_play_index: 5
+  break_sleep_index: 5
 main:
   db_path: db.sqlite
 secret:

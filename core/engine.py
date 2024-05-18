@@ -123,22 +123,61 @@ async def play(id, game):
         happiness = (pet.happiness - config['engine']['play_index']) * (100 - config['engine']['play_sad_index']) // 100
         pet.happiness = min(happiness, 100)
     
+    pet.state = 'playing'
     pet.last_game = game
     
     session.commit()
     session.close()
     
-
-async def feed(id, food)
+    
+async def break_play(id):
     session = Session()
     
     pet = session.query(Pet).filter(Pet.id == id and Pet.status == 'live').first()
     
-    pet.satiety = min(pet.satiety + config['engine']['feed_index'], 100)
+    pet.state = 'nothing'
+    pet.happiness -= config['engine']['break_play_index']
+    
+    session.commit()
+    session.close()   
+    
+
+async def feed(id, food):
+    session = Session()
+    
+    pet = session.query(Pet).filter(Pet.id == id and Pet.status == 'live').first()
+    
+    pet.satiety = min(pet.satiety + config['engine']['foof']['feed_index'], 100)
     
     session.commit()
     session.close()
     
+
+async def sleep(id):
+    session = Session()
+    
+    pet = session.query(Pet).filter(Pet.id == id and Pet.status == 'live').first()
+    
+    pet.health = min(pet.health + config['engine']['sleep_index'], 100)
+    
+    pet.state = 'sleeping'
+    
+    session.commit()
+    session.close()
+    
+    
+async def break_sleep(id):
+    session = Session()
+    
+    pet = session.query(Pet).filter(Pet.id == id and Pet.status == 'live').first()
+    
+    pet.state = 'nothing'
+    pet.happiness -= config['engine']['break_sleep_index']
+    
+    session.commit()
+    session.close()
+    
+
     
 # Automatic updates
 async def edit_pet():
