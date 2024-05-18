@@ -2,8 +2,4 @@ main:
   db_path: db.sqlite
 secret:
   owner_id: OWNER_ID
-  stats:
-    stats_send_time: 'TIME'
-    stats_token: STATS_TOKEN
-    stats_url: STATS_URL
   telegram_token: TELEGRAM_TOKEN
