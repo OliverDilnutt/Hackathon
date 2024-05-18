@@ -21,9 +21,6 @@ async def hunger(id, auto=True, index=None):
 
     # smth edit
 
-    #ghh
-
-
 
 async def sadness(id, auto=True, index=None):
     session = Session()
