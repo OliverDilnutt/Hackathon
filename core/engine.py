@@ -18,7 +18,9 @@ async def hunger(id, auto=True, index=None):
         
     session.commit()
     session.close()
-    
+
+    # smth edit
+
 
 async def sadness(id, auto=True, index=None):
     session = Session()
