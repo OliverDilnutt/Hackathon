@@ -30,7 +30,7 @@ class Pet(base):
     sleep = db.Column(db.Integer, default=100)
     born = db.Column(db.String, default=datetime.now())
     death = db.Column(db.String, nullable=True)
-    last_game = db.Column(db.String, nullable=True)
+    data = db.Column(db.String, nullable=True)
     state = db.Column(db.String, default='nothing')
     status = db.Column(db.Integer, default='live')
 
@@ -41,3 +41,11 @@ class Stats(base):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer)
     type = db.Column(db.String)
+
+
+
+async def get_data(id):
+    session = Session()
+    pet = session.query(Pet).filter(Pet.id == id).first()
+    session.close()
+    return pet.data
