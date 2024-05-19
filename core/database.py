@@ -27,6 +27,7 @@ class Pet(base):
     satiety = db.Column(db.Integer, default=100)
     happiness = db.Column(db.Integer, default=100)
     health = db.Column(db.Integer, default=100)
+    sleep = db.Column(db.Integer, default=100)
     born = db.Column(db.String, default=datetime.now())
     death = db.Column(db.String, nullable=True)
     last_game = db.Column(db.String, nullable=True)
