@@ -10,3 +10,9 @@ bot:
 state:
   live: Живой
   dead: Умер
+
+
+pet:
+  busy: "Занят"
+  not_playing: "Не играет"
+  not_sleeping: "Не спит"
