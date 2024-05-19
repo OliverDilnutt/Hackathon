@@ -1,6 +1,6 @@
 engine:
   hunger_index: 1
-  pet_tasks_time: 15
+  pet_tasks_time: 300
   sadness_index: 1
   time_of_last_check: '2024-05-18T15:08:00.650620'
   play_index: 5
