@@ -38,7 +38,7 @@ async def main_handler(message):
             session = Session()
             interface_name = session.query(States).filter(States.user_id == message.from_user.id).first().state
             session.close()
-            interface_name = messages['interfaces'][interface_name]['next_state']
+            interface_name = messages['interfaces'][interface_name].get('next_state')
             await set_state(message.from_user.id, interface_name)
             name, text, img, markdown = await show_interface(
                 message.from_user.id, interface_name, input
