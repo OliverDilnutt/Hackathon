@@ -3,3 +3,6 @@ __pycache__/
 logs/
 .DS_Store
 .idea/
+bot.db
+launch.json
+.vscode/

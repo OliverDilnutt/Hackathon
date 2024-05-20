@@ -1,31 +1,27 @@
 engine:
   hunger_index: 1
-  sadness_index: 1
   pet_tasks_time: 300
-  time_of_last_check: '2024-05-18T15:08:00.650620'
-main:
-  db_path: db.sqlite
-secret:
-  owner_id: OWNER_ID
-  telegram_token: TELEGRAM_TOKEN
-play:
-  play_index: 5
-  play_again_index: 15
-  break_play_index: 5
-sleep:
-  sleep_index: 1
-  health_sleep_index: 1
-  break_sleep_index: 5
+  sadness_index: 1
+  time_of_last_check: '2024-05-20T04:04:04.763926'
 food:
   list:
     1:
-      name: 
-      feed_index:
+      feed_index: null
+      name: null
     2:
-      name: 
-      feed_index:
+      feed_index: null
+      name: null
     3:
-      name: 
-      feed_index:
-
-    
+      feed_index: null
+      name: null
+play:
+  break_play_index: 5
+  play_again_index: 15
+  play_index: 5
+secret:
+  owner_id: OWNER_ID
+  telegram_token: 7194321199:AAEU5khI7cPWhiqITs5XK4CvI0S3V46hsr0
+sleep:
+  break_sleep_index: 5
+  health_sleep_index: 1
+  sleep_index: 1

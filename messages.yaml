@@ -1,10 +1,76 @@
-bot: 
+interfaces:
   start:
+    trigger: "/start"
+    img: "https://avatars.mds.yandex.net/i?id=a13e3f5dbb9c7a19a4df03f8c6a7f6e306c7dd0d-11039778-images-thumbs&n=13"
+    name: "Начало"
+    text: "🥚 | Что такое тамагочи?\nТамагочи - игра с виртуальным питомцем, которого надо кормить, ухаживать за ним, играть и тд."
+    input: False
+    func: "new_user"
+    buttons:
+      - "Начать играть"
+
+  start_game:
+    trigger: "Начать играть"
+    img: "None"
+    name: "Новое животное"
+    text: "Нажмите на кнопку"
+    input: False
+    func: "None"
+    buttons: 
+      - "Вылупление из яйца"
+
+  new_pet:
+    trigger: "Вылупление из яйца"
+    img: "None"
+    name: "Новое животное"
+    text: "Нажмите на кнопку"
+    input: False
+    func: "new_pet"
+    buttons: 
+      - "Дать имя"
+      - "Случайное имя"
+
+  input_name:
+    trigger: "Дать имя"
+    img: "None"
+    name: "Введите имя"
     text: ""
-    already_reg: "Вы уже зарегистрированы"
+    input: True
+    func: "None"
+    next_func: "save_pet_name"
+    next_state: "saved_pet_name"
+    buttons:
+      - "None"
   
-  help:
+  saved_pet_name:
+    trigger: ""
+    img: "None"
+    name: "Имя успешно сохранено"
     text: ""
+    input: False
+    func: "None"
+    buttons:
+      - "Главное меню"
+
+  random_pet_name:
+    trigger: "Случайное имя"
+    img: "None"
+    name: "Случайное имя"
+    text: "Имя: {0}"
+    input: False
+    func: "save_random_pet_name"
+    buttons:
+      - "Главное меню"
+
+  not_found:
+    trigger: ""
+    text: "Команда не найдена"
+
+
+errors:
+  not_have_pet: "У вас еще не животного"
+  already_have_pet: "У вас уже есть животное"
+  already_reg: "Вы уже зарегистрированы"
 
 
 state:
