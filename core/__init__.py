@@ -81,4 +81,4 @@ base.metadata.create_all(engine)
 # Инициализация бота
 bot = AsyncTeleBot(config["secret"]["telegram_token"])
 logging.info("Бот запущен")
-print('Бот запущен')
+print("Бот запущен")

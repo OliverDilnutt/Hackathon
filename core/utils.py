@@ -7,13 +7,14 @@ from datetime import datetime, timedelta
 import asyncio
 
 from core import config, logging, messages, bot
-from core.database import User, Session
+from core.database import States, Session
 
 
 async def generate_markup(buttons):
     markup = telebot.async_telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     for button in buttons:
-        markup.add(button)
+        if button != 'None':
+            markup.add(button)
 
     return markup
 
@@ -21,16 +22,3 @@ async def generate_markup(buttons):
 # Отправка сообщения владельцу бота
 async def owner_send(message):
     await bot.send_message(config["secret"]["owner_id"], message)
-
-
-async def new_user(message):
-    session = Session()
-    user = session.query(User).filter(User.user_id == message.from_user.id).first()
-    if not user:
-        user = User(user_id=message.from_user.id)
-        session.add(user)
-        session.commit()
-        session.close()
-        return True, ""
-    else:
-        return False, messages['bot']['start']['already_reg']

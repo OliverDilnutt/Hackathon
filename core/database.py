@@ -5,25 +5,20 @@ from sqlalchemy.orm import sessionmaker
 
 from datetime import datetime
 
+from core import messages
+
 
 base = declarative_base()
 engine = create_engine("sqlite:///bot.db")
 Session = sessionmaker(bind=engine)
 
 
-class User(base):
-    __tablename__ = "user"
-
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer)
-
-
 class Pet(base):
     __tablename__ = "pet"
-    
+
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
-    name = db.Column(db.String, nullable=False)
+    name = db.Column(db.String, nullable=True)
     satiety = db.Column(db.Integer, default=100)
     happiness = db.Column(db.Integer, default=100)
     health = db.Column(db.Integer, default=100)
@@ -31,8 +26,16 @@ class Pet(base):
     born = db.Column(db.String, default=datetime.now())
     death = db.Column(db.String, nullable=True)
     data = db.Column(db.String, nullable=True)
-    state = db.Column(db.String, default='nothing')
-    status = db.Column(db.Integer, default='live')
+    state = db.Column(db.String, default="nothing")
+    status = db.Column(db.Integer, default="live")
+
+
+class States(base):
+    __tablename__ = "states"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    state = db.Column(db.String, nullable=True)
 
 
 class Stats(base):
@@ -43,9 +46,31 @@ class Stats(base):
     type = db.Column(db.String)
 
 
-
 async def get_data(id):
     session = Session()
     pet = session.query(Pet).filter(Pet.id == id).first()
     session.close()
     return pet.data
+
+
+async def new_user(user_id):
+    session = Session()
+    user = session.query(States).filter(States.user_id == user_id).first()
+    if not user:
+        user = States(user_id=user_id)
+        session.add(user)
+        session.commit()
+        session.close()
+        return True, ""
+    else:
+        session.close()
+        return False, messages["errors"]["already_reg"]
+
+
+async def set_state(id, state):
+    session = Session()
+    user = session.query(States).filter(States.user_id == id).first()
+    if user is not None:
+        user.state = state
+        session.commit()
+    session.close()
