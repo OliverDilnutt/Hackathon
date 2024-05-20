@@ -37,7 +37,6 @@ interfaces:
     text: ""
     input: True
     func: "None"
-    next_func: "save_pet_name"
     next_state: "saved_pet_name"
     buttons:
       - "None"
@@ -48,7 +47,7 @@ interfaces:
     name: "Имя успешно сохранено"
     text: ""
     input: False
-    func: "None"
+    func: "save_pet_name"
     buttons:
       - "Главное меню"
 

@@ -28,16 +28,9 @@ async def show_interface(user_id, interface_name, input=False):
     img = messages["interfaces"][interface_name]["img"]
     markdown = await generate_markup(messages["interfaces"][interface_name]["buttons"])
     func = messages["interfaces"][interface_name]["func"]
-    next_func = messages["interfaces"][interface_name].get("next_func")
     
-    if next_func is None:
-        next_func = "Nones"
-    
-    if func != "None" and next_func != "None":
-        if input:
-            function_to_call = globals().get(next_func)
-        else:
-            function_to_call = globals().get(func)
+    if func != "None":
+        function_to_call = globals().get(func)
         if function_to_call:
             if not input:
                 status, func_text = await function_to_call(user_id=user_id)
