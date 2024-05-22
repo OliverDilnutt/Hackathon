@@ -6,6 +6,7 @@ from datetime import datetime
 import gzip
 import glob
 import yaml
+import pymorphy3
 
 
 current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -72,6 +73,8 @@ except yaml.YAMLError as e:
     logging.critical(f"Ошибка при загрузке файла messages.yaml: \n{e}")
     exit()
 
+
+morph = pymorphy3.MorphAnalyzer(lang="ru")
 
 from core.database import base, engine
 

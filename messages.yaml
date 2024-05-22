@@ -61,6 +61,96 @@ interfaces:
     buttons:
       - "Главное меню"
 
+  main_menu:
+    trigger: 
+      - "Главное меню"
+      - "Инфо"
+    img: "None"
+    name: "Главное меню"
+    text: "Имя: {0}\n\nПоказатели животного:\nЗанятие: {1}\nСытость: {2}\nРадость: {3}\nЗдоровье: {4}\nСон: {5}\nСтатус: {6}\n\nВозраст: {7}"
+    input: False
+    func: "format_pet_info"
+    buttons:
+      - "Инфо"
+      - "Действия"
+      - "Профиль"
+
+  actions:
+    trigger: "Действия"
+    img: "None"
+    name: "Действия"
+    text: ""
+    input: False
+    func: "None"
+    buttons: "parse_actions"
+
+  select_play:
+    trigger: "Играть"
+    img: "None"
+    name: "Выбор игры"
+    text: ""
+    input: True
+    func: "None"
+    next_state: "play"
+    buttons: parse_games
+
+  play:
+    trigger: ""
+    img: "None"
+    name: "Животное начало играть"
+    text: ""
+    last_game_used: "Опять {0}?"
+    input: False
+    func: "start_play_interface"
+    buttons: "parse_actions"
+
+  break_play:
+    trigger: "Остановить игру"
+    img: "None"
+    name: "Остановить игру"
+    text: ""
+    input: False
+    func: "break_play_interface"
+    buttons: "parse_actions"
+
+  sleep:
+    trigger: "Уложить спать"
+    img: "None"
+    name: "Уложить спать"
+    text: ""
+    input: False
+    func: "start_sleep_interface"
+    buttons: "parse_actions"
+
+  break_sleep:
+    trigger: "Разрубить"
+    img: "None"
+    name: "Разрубить"
+    text: ""
+    input: False
+    func: "break_sleep_interface"
+    buttons: "parse_actions"
+
+  select_food:
+    trigger: "Покормить"
+    img: "None"
+    name: "Выбор еды"
+    text: ""
+    input: True
+    func: "None"
+    next_state: "feed"
+    buttons: parse_food
+
+  feed:
+    trigger: ""
+    img: "None"
+    name: "Вы покормили животное"
+    text: ""
+    input: False
+    func: "feed_interface"
+    buttons: "parse_actions"
+
+
   not_found:
     trigger: ""
     text: "Команда не найдена"
@@ -70,11 +160,42 @@ errors:
   not_have_pet: "У вас еще не животного"
   already_have_pet: "У вас уже есть животное"
   already_reg: "Вы уже зарегистрированы"
+  game_not_found: "Игра не найдена"
+  food_not_found: "Еда не найдена"
 
 
-state:
+states:
+  nothing: "Ничего не делаю"
+  playing: "Играю"
+  sleeping: "Сплю"
+
+
+statuses:
   live: Живой
   dead: Умер
+
+buttons:
+  actions_buttons:
+    nothing: 
+      - "Покормить"
+      - "Играть"
+      - "Уложить спать"
+      - "Инфо"
+
+    playing:
+      - "Остановить игру"
+      - "Инфо"
+    
+    sleeping:
+      - "Разрубить"
+      - "Инфо"
+
+
+time_names:
+  days: "дней"
+  hours: "часов"
+  minutes: "минут"
+  seconds: "секунд"
 
 
 pet:
