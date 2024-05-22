@@ -62,9 +62,9 @@ async def hunger(id, auto=True, index=None):
     pet = session.query(Pet).filter(Pet.id == id and Pet.status == "live").first()
 
     if auto:
-        pet.satiety = pet.satiety - config["engine"]["hunger_index"]
+        pet.satiety = max(pet.satiety - config["food"]["hunger_index"], 0)
     else:
-        pet.satiety = pet.satiety - index
+        pet.satiety = max(pet.satiety - index, 0)
 
     session.commit()
     session.close()
@@ -74,17 +74,30 @@ async def sadness(id, auto=True, index=None):
     session = Session()
 
     pet = session.query(Pet).filter(Pet.id == id and Pet.status == "live").first()
+    if pet.state != 'playing':
+        if auto:
+            pet.happiness = max(pet.happiness - config["engine"]["sadness_index"], 0)
+        else:
+            pet.happiness = max(pet.happiness - index, 0)
 
-    if auto:
-        pet.happiness = pet.happiness - config["engine"]["sadness_index"]
-    else:
-        pet.happiness = pet.happiness - index
+        session.commit()
+        session.close()
 
-    session.commit()
-    session.close()
+async def sleep_down(id, auto=True, index=None):
+    session = Session()
+
+    pet = session.query(Pet).filter(Pet.id == id and Pet.status == "live").first()
+    if pet.state != 'sleeping':
+        if auto:
+            pet.sleep = max(pet.sleep - config["sleep"]["sleep_down_index"], 0)
+        else:
+            pet.sleep = max(pet.sleep - index, 0)
+
+        session.commit()
+        session.close()
 
 
-async def health(id, auto=True, index=None):
+async def health(id, index=None, auto=True):
     session = Session()
 
     pet = session.query(Pet).filter(Pet.id == id and Pet.status == "live").first()
@@ -139,10 +152,10 @@ async def get_info(id):
     session.close()
 
     if pet.status == "live":
-        status = messages["state"]["live"]
+        status = messages["statuses"]["live"]
 
     elif pet.status == "dead":
-        status = messages["state"]["dead"]
+        status = messages["statuses"]["dead"]
 
     data = {
         "id": pet.id,
@@ -162,7 +175,7 @@ async def get_info(id):
         data["death"] = pet.death
 
     return data
-
+    
 
 async def start_play(id, game):
     session = Session()
@@ -171,10 +184,16 @@ async def start_play(id, game):
 
     if pet.state == "nothing":
         pet.state = "playing"
-        pet.data["last_game"] = game
-
+        data = await get_data(pet.id)
+        data["game"] = game
+        pet.data = str(data)
+        
         session.commit()
         session.close()
+        if data.get("last_game") == game:
+            return False, messages['interfaces']['play']['last_game_used'].format(game)
+        else:
+            return True, ""
     else:
         session.close()
         return False, messages["pet"]["busy"]
@@ -186,8 +205,10 @@ async def break_play(id):
     pet = session.query(Pet).filter(Pet.id == id and Pet.status == "live").first()
     if pet.state == "playing":
         pet.state = "nothing"
-        pet.happiness -= config["engine"]["break_play_index"]
-
+        pet.happiness = max(pet.happiness - config["play"]["break_play_index"], 0)
+        data = await get_data(pet.id)
+        data["last_game"] = data["game"]
+        pet.data = str(data)
         session.commit()
         session.close()
         return True, ""
@@ -203,15 +224,18 @@ async def play(id):
 
     if pet.state == "playing":
         data = await get_data(id)
-        last_game = data["last_game"]
+        if data.get("last_game") is not None:
+            last_game = data["last_game"]
+        else:
+            last_game = None
         game = data["game"]
         if last_game != game:
-            pet.happiness = min(pet.happiness + config["engine"]["play_index"], 100)
+            pet.happiness = min(pet.happiness + config["play"]["play_index"], 100)
 
         else:
             happiness = (
-                (pet.happiness - config["engine"]["play_index"])
-                * (100 - config["engine"]["play_again_index"])
+                (pet.happiness - config["play"]["play_index"])
+                * (100 - config["play"]["play_again_index"])
                 // 100
             )
             pet.happiness = min(happiness, 100)
@@ -225,8 +249,8 @@ async def feed(id, food):
 
     pet = session.query(Pet).filter(Pet.id == id and Pet.status == "live").first()
 
-    if pet.status == "nothing":
-        for key, value in config["food"]["list"].items():
+    if pet.state == "nothing":
+        for key, value in config["food"].items():
             if value["name"] == food:
                 index = value["feed_index"]
 
@@ -241,9 +265,8 @@ async def feed(id, food):
 async def start_sleep(id):
     session = Session()
 
-    if pet.status == "nothing":
-        pet = session.query(Pet).filter(Pet.id == id and Pet.status == "live").first()
-
+    pet = session.query(Pet).filter(Pet.id == id and Pet.status == "live").first()
+    if pet.state == "nothing":
         pet.state = "sleeping"
 
         session.commit()
@@ -258,9 +281,9 @@ async def break_sleep(id):
     session = Session()
 
     pet = session.query(Pet).filter(Pet.id == id and Pet.status == "live").first()
-    if pet.status == "sleeping":
+    if pet.state == "sleeping":
         pet.state = "nothing"
-        pet.happiness -= config["engine"]["break_sleep_index"]
+        pet.happiness -= config["sleep"]["break_sleep_index"]
 
         session.commit()
         session.close()
@@ -274,12 +297,31 @@ async def sleep(id):
     session = Session()
 
     pet = session.query(Pet).filter(Pet.id == id and Pet.status == "live").first()
-    if pet.status == "sleeping":
+    if pet.state == "sleeping":
         pet.health = min(pet.health + config["engine"]["health_sleep_index"], 100)
         pet.sleep = min(pet.sleep + config["engine"]["sleep_index"], 100)
 
         session.commit()
         session.close()
+
+
+
+async def check_indexes(id):
+    session = Session()
+
+    pet = session.query(Pet).filter(Pet.id == id and Pet.status == "live").first()
+
+    if pet.satiety <= 0:
+        await health(id, config['food']['zero_health_index'], False)
+    if pet.happiness <= 0:
+        await health(id, config['games']['zero_health_index'], False)
+    if pet.sleep <= 0:
+        await health(id, config['sleep']['zero_health_index'], False)
+    if pet.health <= 0:
+        await die(id)
+
+    session.commit()
+    session.close()
 
 
 # Automatic updates
@@ -290,8 +332,10 @@ async def edit_pet():
     for pet in pets:
         await hunger(pet.id)
         await sadness(pet.id)
+        await sleep_down(pet.id)
         await play(pet.id)
         await sleep(pet.id)
+        await check_indexes(pet.id)
 
 
 async def pet_tasks():

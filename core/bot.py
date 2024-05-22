@@ -40,20 +40,20 @@ async def main_handler(message):
             session.close()
             interface_name = messages['interfaces'][interface_name].get('next_state')
             await set_state(message.from_user.id, interface_name)
-            name, text, img, markdown = await show_interface(
+            name, text, img, markup = await show_interface(
                 message.from_user.id, interface_name, input
             )
         else:
             await set_state(message.from_user.id, interface_name)
-            name, text, img, markdown = await show_interface(
+            name, text, img, markup = await show_interface(
                 message.from_user.id, interface_name
             )
         text = f"{name}\n\n{text}"
         if img != "None":
             await bot.send_photo(
-                message.chat.id, photo=img, caption=text, reply_markup=markdown
+                message.chat.id, photo=img, caption=text, reply_markup=markup
             )
         else:
-            await bot.send_message(message.chat.id, text, reply_markup=markdown)
+            await bot.send_message(message.chat.id, text, reply_markup=markup)
     else:
         await bot.send_message(message.chat.id, interface_name)

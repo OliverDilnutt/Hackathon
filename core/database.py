@@ -2,8 +2,8 @@ import sqlalchemy as db
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
 from datetime import datetime
+import ast
 
 from core import messages
 
@@ -25,7 +25,7 @@ class Pet(base):
     sleep = db.Column(db.Integer, default=100)
     born = db.Column(db.String, default=datetime.now())
     death = db.Column(db.String, nullable=True)
-    data = db.Column(db.String, nullable=True)
+    data = db.Column(db.String, default="{}")
     state = db.Column(db.String, default="nothing")
     status = db.Column(db.Integer, default="live")
 
@@ -50,7 +50,7 @@ async def get_data(id):
     session = Session()
     pet = session.query(Pet).filter(Pet.id == id).first()
     session.close()
-    return pet.data
+    return ast.literal_eval(pet.data)
 
 
 async def new_user(user_id):
