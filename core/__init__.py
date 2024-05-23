@@ -7,6 +7,7 @@ import gzip
 import glob
 import yaml
 import pymorphy3
+import pymorphy3
 
 
 current_datetime = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
