@@ -2,7 +2,7 @@ collect_food:
   chance: 1.0
   max_collect_food: 50
 engine:
-  pet_tasks_time: 30
+  pet_tasks_time: 300
   sadness_index: 1
   time_of_last_check: '2024-05-23T14:31:26.155566'
 food:
