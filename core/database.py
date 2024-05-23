@@ -28,6 +28,7 @@ class Pet(Base):
     death = db.Column(db.String, nullable=True)
     data = db.Column(db.String, default="{}")
     inventory = db.Column(db.String, default="{}")
+    lvl = db.Column(db.Integer, default=1)
     state = db.Column(db.String, default="nothing")
     status = db.Column(db.Integer, default="live")
 

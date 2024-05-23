@@ -362,7 +362,7 @@ async def break_collect_food(id):
                             
                             markup = await parse_actions(pet.user_id)
                             
-                            return True, messages["interfaces"]["break_collect_food"]["break_collect_food"].format(collected, required)
+                            return True, messages["interfaces"]["break_collect_food"]["text"].format(collected, required)
                 else:
                     return False, messages["errors"]["not_collecting"]
             else:

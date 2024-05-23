@@ -47,7 +47,6 @@ async def main_handler(message):
         else:
             await set_state(message.from_user.id, interface_name)
             name, text, img, markup = await show_interface(
-            name, text, img, markup = await show_interface(
                 message.from_user.id, interface_name
             )
         text = f"{name}\n\n{text}"
@@ -55,11 +54,11 @@ async def main_handler(message):
         if img != "None":
             await bot.send_photo(
                 message.chat.id, photo=img, caption=text, reply_markup=markup
-                message.chat.id, photo=img, caption=text, reply_markup=markup
             )
         else:
             await bot.send_message(message.chat.id, text, reply_markup=markup)
             
     else:
-        
+        await bot.send_message(message.chat.id, interface_name)
+
         

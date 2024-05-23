@@ -96,7 +96,7 @@ async def parse_food(user_id):
         pet = result.scalar_one_or_none()
     if pet:
         foods = await get_inventory(pet.id)
-        foods = [value['name'] for key, value in foods.items() if value['class'] == 'food']
+        foods = [f"{value['name']} [{value['amount']}]" for key, value in foods.items() if value['class'] == 'food']
         foods.append(messages['buttons']['actions'])
         markup = await generate_markup(foods)
         return markup
