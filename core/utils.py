@@ -58,6 +58,5 @@ async def create_info_image(user_id):
             
             background.paste(panel_img, (background.width - panel_img.width - 15, background.height - panel_img.height - 15), panel_img)
             
-            background.save('test.png')
             return True, background
             
