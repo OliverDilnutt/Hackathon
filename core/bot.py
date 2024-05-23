@@ -2,6 +2,7 @@ from core import bot, messages, logging
 from core.interface import check_triggers, show_interface
 from core.utils import generate_markup
 from core.database import set_state, AsyncSessionLocal, States, db
+from core.engine import break_collect_food
 
 
 # @bot.message_handler(commands=["start"])
@@ -49,11 +50,15 @@ async def main_handler(message):
                 message.from_user.id, interface_name
             )
         text = f"{name}\n\n{text}"
+
         if img != "None":
             await bot.send_photo(
                 message.chat.id, photo=img, caption=text, reply_markup=markup
             )
         else:
             await bot.send_message(message.chat.id, text, reply_markup=markup)
+            
     else:
         await bot.send_message(message.chat.id, interface_name)
+        
+        

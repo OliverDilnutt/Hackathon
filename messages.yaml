@@ -74,6 +74,7 @@ interfaces:
     buttons:
       - "Инфо"
       - "Действия"
+      - "Инвентарь"
       - "Профиль"
 
   actions:
@@ -163,8 +164,12 @@ interfaces:
     input: True
     func: "None"
     next_state: "choose_amount_collect_food"
-    buttons: 
-      - "Главное меню"
+    buttons_in_row: 3
+    buttons:
+      - "10"
+      - "25"
+      - "50"
+      - "Действия"
 
   choose_amount_collect_food:
     trigger: ""
@@ -175,6 +180,37 @@ interfaces:
     func: "start_collect_food_interface"
     buttons: "parse_actions"
 
+  progress_collect_food:
+    trigger: "Прогресс"
+    img: "None"
+    name: "Прогресс сбора"
+    text: "Собрано: {0}/{1}"
+    input: False
+    func: "progress_collect_food_interface"
+    buttons: "parse_actions"
+
+  break_collect_food:
+    trigger: "Прекратить сбор"
+    img: "None"
+    name: "Прогресс сбора"
+    text: "Сбор еды прекращен. Собрано: {0}/{1}"
+    input: False
+    func: "break_collect_food_interface"
+    buttons: "parse_actions"
+
+  inventory:
+    trigger: "Инвентарь"
+    img: "None"
+    name: "Инвентарь:"
+    text: ""
+    item_text: "{0} [{1}]\n"
+    input: False
+    func: "get_inventory_interface"
+    buttons: 
+      - "Инфо"
+      - "Действия"
+      - "Инвентарь"
+      - "Профиль"
 
 
   not_found:
@@ -191,6 +227,8 @@ errors:
   name_too_long: "Имя слишком длинное. Оно должно быть не больше 20 символов"
   dead: "Ваше животное умерло"
   too_much_food_for_collect: "Превышен лимит для сбора еды\nЛимит: {0}"
+  not_collecting: "Черепашка не собирает еду"
+  not_int: "Вы отправили не число"
 
 
 states:
@@ -223,12 +261,14 @@ buttons:
     
     collecting:
       - "Прогресс"
+      - "Прекратить сбор"
       - "Инфо"
     
   not_have_pet:
     - "/start"
   
   main_menu: "Главное меню"
+  actions: "Действия"
   
 
 
