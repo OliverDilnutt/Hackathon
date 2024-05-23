@@ -46,7 +46,7 @@ async def create_info_image(user_id):
             pet_img = Image.open(f"{config['imgs']['path_pets_folder']}/{data['pet_img']}", 'r')
             panel_img = Image.open("imgs/panels/panel_1.png", 'r')
             
-            background.paste(pet_img, (100, background.height - pet_img.height - 34), pet_img)
+            background.paste(pet_img, (100, background.height - pet_img.height - 5), pet_img)
             
             font = ImageFont.truetype(f"{config['imgs']['font_path']}", config['imgs']['font_size'])
             draw = ImageDraw.Draw(panel_img)
@@ -59,4 +59,5 @@ async def create_info_image(user_id):
             background.paste(panel_img, (background.width - panel_img.width - 15, background.height - panel_img.height - 15), panel_img)
             
             return True, background
-            
+        else:
+            return False, messages["errors"]["not_have_pet"]

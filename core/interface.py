@@ -29,38 +29,38 @@ async def show_interface(user_id, interface_name, input=False):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
-    if pet and pet_required == "None" or not pet_required or pet_required:
-        if not "https://" in img or "http://" in img or "/" in img or "." in img and img != "None":
-            img_func = globals().get(img)
-            if img_func:
-                status, img = await img_func(user_id=user_id)
 
-                if not status:
-                    img = "None"
-        
-        if func != "None":
-            function_to_call = globals().get(func)
-            if function_to_call:
-                if not input:
-                    status, func_text = await function_to_call(user_id=user_id)
-                else:
-                    status, func_text = await function_to_call(user_id=user_id, input=input)
+    if not "https://" in img or "http://" in img or "/" in img or "." in img and img != "None":
+        img_func = globals().get(img)
+        if img_func:
+            status, img = await img_func(user_id=user_id)
 
-                if status:
-                    if func_text is not None and func_text != "" and func_text != "None":
-                        text = func_text
-                else:
-                    name = ""
-                    text = func_text
-
-        if type(markup) is not list:
-            markup_func = globals().get(markup)
-            if markup_func:
-                markup = await markup_func(user_id=user_id)
-        else:
-            markup = await generate_markup(markup)
+            if not status:
+                img = "None"
     
+    if func != "None":
+        function_to_call = globals().get(func)
+        if function_to_call:
+            if not input:
+                status, func_text = await function_to_call(user_id=user_id)
+            else:
+                status, func_text = await function_to_call(user_id=user_id, input=input)
+
+            if status:
+                if func_text is not None and func_text != "" and func_text != "None":
+                    text = func_text
+            else:
+                name = ""
+                text = func_text
+
+    if type(markup) is not list:
+        markup_func = globals().get(markup)
+        if markup_func:
+            markup = await markup_func(user_id=user_id)
     else:
+        markup = await generate_markup(markup)
+        
+    if name is None and text is None and pet is None:
         name = messages['errors']['not_have_pet']
         text = ""
         img = "None"

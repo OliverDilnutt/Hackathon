@@ -38,9 +38,12 @@ async def save_pet_name(user_id, input):
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
         if pet:
-            pet.name = pet_name
-            await session.commit()
-            return True, ""
+            if len(pet_name) <= 20:
+                pet.name = pet_name
+                await session.commit()
+                return True, ""
+            else:
+                return False, messages["errors"]["name_too_long"]
         return False, messages["errors"]["not_have_pet"]
 
 
