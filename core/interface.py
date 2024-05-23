@@ -36,23 +36,23 @@ async def show_interface(user_id, interface_name, input=False):
         if img_func:
             status, img = await img_func(user_id=user_id)
 
-            if not status:
-                img = "None"
-    
-    if func != "None":
-        function_to_call = globals().get(func)
-        if function_to_call:
-            if not input:
-                status, func_text = await function_to_call(user_id=user_id)
-            else:
-                status, func_text = await function_to_call(user_id=user_id, input=input)
+                if not status:
+                    img = "None"
+        
+        if func != "None":
+            function_to_call = globals().get(func)
+            if function_to_call:
+                if not input:
+                    status, func_text = await function_to_call(user_id=user_id)
+                else:
+                    status, func_text = await function_to_call(user_id=user_id, input=input)
 
-            if status:
-                if func_text is not None and func_text != "" and func_text != "None":
+                if status:
+                    if func_text is not None and func_text != "" and func_text != "None":
+                        text = func_text
+                else:
+                    name = ""
                     text = func_text
-            else:
-                name = ""
-                text = func_text
 
     if type(markup) is not list:
         markup_func = globals().get(markup)
