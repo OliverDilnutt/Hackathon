@@ -1,5 +1,5 @@
 import sqlalchemy as db
-from sqlalchemy import create_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
@@ -8,12 +8,12 @@ import ast
 from core import messages
 
 
-base = declarative_base()
-engine = create_engine("sqlite:///bot.db")
-Session = sessionmaker(bind=engine)
+Base = declarative_base()
+engine_db = create_async_engine("sqlite+aiosqlite:///bot.db", echo=False)
+AsyncSessionLocal = sessionmaker(bind=engine_db, class_=AsyncSession, expire_on_commit=False)
 
 
-class Pet(base):
+class Pet(Base):
     __tablename__ = "pet"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -30,7 +30,7 @@ class Pet(base):
     status = db.Column(db.Integer, default="live")
 
 
-class States(base):
+class States(Base):
     __tablename__ = "states"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -38,7 +38,7 @@ class States(base):
     state = db.Column(db.String, nullable=True)
 
 
-class Stats(base):
+class Stats(Base):
     __tablename__ = "stats"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -47,30 +47,30 @@ class Stats(base):
 
 
 async def get_data(id):
-    session = Session()
-    pet = session.query(Pet).filter(Pet.id == id).first()
-    session.close()
-    return ast.literal_eval(pet.data)
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.id == id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            return ast.literal_eval(pet.data)
+        return {}
 
 
 async def new_user(user_id):
-    session = Session()
-    user = session.query(States).filter(States.user_id == user_id).first()
-    if not user:
-        user = States(user_id=user_id)
-        session.add(user)
-        session.commit()
-        session.close()
-        return True, ""
-    else:
-        session.close()
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(States).filter(States.user_id == user_id))
+        user = result.scalar_one_or_none()
+        if not user:
+            user = States(user_id=user_id)
+            session.add(user)
+            await session.commit()
+            return True, ""
         return False, messages["errors"]["already_reg"]
 
 
 async def set_state(id, state):
-    session = Session()
-    user = session.query(States).filter(States.user_id == id).first()
-    if user is not None:
-        user.state = state
-        session.commit()
-    session.close()
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(States).filter(States.user_id == id))
+        user = result.scalar_one_or_none()
+        if user:
+            user.state = state
+            await session.commit()

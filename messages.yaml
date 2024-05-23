@@ -29,6 +29,7 @@ interfaces:
     buttons: 
       - "Дать имя"
       - "Случайное имя"
+    
 
   input_name:
     trigger: "Дать имя"
@@ -65,7 +66,7 @@ interfaces:
     trigger: 
       - "Главное меню"
       - "Инфо"
-    img: "None"
+    img: "create_info_image"
     name: "Главное меню"
     text: "Имя: {0}\n\nПоказатели животного:\nЗанятие: {1}\nСытость: {2}\nРадость: {3}\nЗдоровье: {4}\nСон: {5}\nСтатус: {6}\n\nВозраст: {7}"
     input: False
@@ -100,6 +101,7 @@ interfaces:
     name: "Животное начало играть"
     text: ""
     last_game_used: "Опять {0}?"
+    finally: "Я наигрался"
     input: False
     func: "start_play_interface"
     buttons: "parse_actions"
@@ -118,6 +120,8 @@ interfaces:
     img: "None"
     name: "Уложить спать"
     text: ""
+    finally: "Я выспался"
+    min_sleep: "Я не хочу спать"
     input: False
     func: "start_sleep_interface"
     buttons: "parse_actions"
@@ -162,6 +166,7 @@ errors:
   already_reg: "Вы уже зарегистрированы"
   game_not_found: "Игра не найдена"
   food_not_found: "Еда не найдена"
+  name_too_long: "Имя слишком длинное. Оно должно быть не больше 20 символов"
 
 
 states:
@@ -189,13 +194,16 @@ buttons:
     sleeping:
       - "Разрубить"
       - "Инфо"
+    
+  not_have_pet:
+    - "/start"
 
 
 time_names:
-  days: "дней"
-  hours: "часов"
-  minutes: "минут"
-  seconds: "секунд"
+  days: "день"
+  hours: "час"
+  minutes: "минута"
+  seconds: "секунда"
 
 
 pet:
