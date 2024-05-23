@@ -4,7 +4,7 @@ collect_food:
 engine:
   pet_tasks_time: 300
   sadness_index: 1
-  time_of_last_check: '2024-05-23T12:27:20.422786'
+  time_of_last_check: '2024-05-23T11:37:17.663751'
 food:
   collect_index: 2
   hunger_index: 1
@@ -36,10 +36,17 @@ imgs:
   path_panels_folder: imgs/panels/
   path_pets_folder: imgs/pets/
   path_rooms_folder: imgs/rooms/
+imgs:
+  font_path: fonts/Aqum.ttf
+  font_size: 24
+  path_panels_folder: imgs/panels/
+  path_pets_folder: imgs/pets/
+  path_rooms_folder: imgs/rooms/
 play:
   break_play_index: 5
   play_again_index: 15
   play_index: 5
+  zero_health_index: 1
   zero_health_index: 1
 secret:
   owner_id: OWNER_ID
@@ -48,6 +55,8 @@ sleep:
   break_sleep_index: 5
   health_sleep_index: 1
   min_sleep_index: 75
+  min_sleep_index: 75
   sleep_down_index: 1
+  sleep_index: 3
   sleep_index: 3
   zero_health_index: 3
