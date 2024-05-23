@@ -1,6 +1,8 @@
+import re
+
 from core import bot, messages, logging
 from core.interface import check_triggers, show_interface
-from core.utils import generate_markup
+from core.utils import generate_markup, remove_patterns
 from core.database import set_state, AsyncSessionLocal, States, db
 from core.engine import break_collect_food
 
@@ -37,19 +39,25 @@ async def main_handler(message):
     if status:
         if input:
             async with AsyncSessionLocal() as session:
-                interface_name = await session.execute(db.select(States).filter(States.user_id == message.from_user.id))
+                interface_name = await session.execute(
+                    db.select(States).filter(States.user_id == message.from_user.id)
+                )
                 interface_name = interface_name.scalar_one_or_none().state
-                interface_name = messages['interfaces'][interface_name].get('next_state')
+                interface_name = messages["interfaces"][interface_name].get(
+                    "next_state"
+                )
                 await set_state(message.from_user.id, interface_name)
-                name, text, img, markup = await show_interface(
+
+                input = await remove_patterns(input)
+                    
+                text, img, markup = await show_interface(
                     message.from_user.id, interface_name, input
                 )
         else:
             await set_state(message.from_user.id, interface_name)
-            name, text, img, markup = await show_interface(
+            text, img, markup = await show_interface(
                 message.from_user.id, interface_name
             )
-        text = f"{name}\n\n{text}"
 
         if img != "None":
             await bot.send_photo(
@@ -57,8 +65,6 @@ async def main_handler(message):
             )
         else:
             await bot.send_message(message.chat.id, text, reply_markup=markup)
-            
+
     else:
         await bot.send_message(message.chat.id, interface_name)
-
-        

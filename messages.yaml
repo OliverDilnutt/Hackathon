@@ -2,7 +2,6 @@ interfaces:
   start:
     trigger: "/start"
     img: "https://avatars.mds.yandex.net/i?id=a13e3f5dbb9c7a19a4df03f8c6a7f6e306c7dd0d-11039778-images-thumbs&n=13"
-    name: "Начало"
     text: "🥚 | Что такое тамагочи?\nТамагочи - игра с виртуальным питомцем, которого надо кормить, ухаживать за ним, играть и тд."
     input: False
     func: "new_user"
@@ -12,21 +11,37 @@ interfaces:
   start_game:
     trigger: "Начать играть"
     img: "None"
-    name: "Новое животное"
-    text: "Нажмите на кнопку"
-    input: False
-    func: "None"
-    buttons: 
-      - "Вылупление из яйца"
-
-  new_pet:
-    trigger: "Вылупление из яйца"
-    img: "None"
-    name: "Новое животное"
-    text: "Нажмите на кнопку"
+    text: "Новое животное"
     input: False
     func: "new_pet"
     buttons: 
+      - "Вылупление из яйца"
+
+  hatching:
+    trigger: "Вылупление из яйца"
+    img: "None"
+    text: "Черепашка вылупляется из яйца"
+    input: False
+    func: "hatching_interface"
+    buttons:
+      - "Осталось времени"
+
+  hatching_check:
+    trigger: "Осталось времени"
+    img: "None"
+    text: "Черепашка вылупляется из яйца\nОсталось {0} {1} {2} {3}"
+    out_of_time: "Черепашка уже вылупилась"
+    input: False
+    func: "hatching_check_interface"
+    buttons: 
+      - "Осталось времени"
+
+  hatching_finally:
+    trigger: ""
+    text: "Черепашка вылупилась из яйца, самое время дать ей имя"
+    input: False
+    func: "None"
+    buttons:
       - "Дать имя"
       - "Случайное имя"
     
@@ -34,8 +49,7 @@ interfaces:
   input_name:
     trigger: "Дать имя"
     img: "None"
-    name: "Введите имя"
-    text: ""
+    text: "Введите имя"
     input: True
     func: "None"
     next_state: "saved_pet_name"
@@ -45,8 +59,7 @@ interfaces:
   saved_pet_name:
     trigger: ""
     img: "None"
-    name: "Имя успешно сохранено"
-    text: ""
+    text: "Имя успешно сохранено"
     input: False
     func: "save_pet_name"
     buttons:
@@ -55,7 +68,6 @@ interfaces:
   random_pet_name:
     trigger: "Случайное имя"
     img: "None"
-    name: "Случайное имя"
     text: "Имя: {0}"
     input: False
     func: "save_random_pet_name"
@@ -67,8 +79,7 @@ interfaces:
       - "Главное меню"
       - "Инфо"
     img: "create_info_image"
-    name: "Главное меню"
-    text: "Имя: {0}\n\nПоказатели животного:\nЗанятие: {1}\nСытость: {2}\nРадость: {3}\nЗдоровье: {4}\nСон: {5}\nСтатус: {6}\n\nВозраст: {7}"
+    text: "🐢┌ Имя: {0}\n⭐├ Статус: {1}\n🎮├ Занятие: {2}\n📅└ Возраст: {3}\n\n❤️┌ Здоровье: {4}\n🍎├ Сытость: {5}\n😃├ Радость: {6}\n🌙└ Сон: {7}"
     input: False
     func: "format_pet_info"
     buttons:
@@ -80,8 +91,7 @@ interfaces:
   actions:
     trigger: "Действия"
     img: "None"
-    name: "Действия"
-    text: ""
+    text: "Действия"
     input: False
     func: "None"
     buttons: "parse_actions"
@@ -89,8 +99,7 @@ interfaces:
   select_play:
     trigger: "Играть"
     img: "None"
-    name: "Выбор игры"
-    text: ""
+    text: "Выбор игры"
     input: True
     func: "None"
     next_state: "play"
@@ -99,8 +108,7 @@ interfaces:
   play:
     trigger: ""
     img: "None"
-    name: "Животное начало играть"
-    text: ""
+    text: "Животное начало играть"
     last_game_used: "Опять {0}?"
     finally: "Я наигрался"
     input: False
@@ -110,8 +118,7 @@ interfaces:
   break_play:
     trigger: "Остановить игру"
     img: "None"
-    name: "Остановить игру"
-    text: ""
+    text: "Остановить игру"
     input: False
     func: "break_play_interface"
     buttons: "parse_actions"
@@ -119,8 +126,7 @@ interfaces:
   sleep:
     trigger: "Уложить спать"
     img: "None"
-    name: "Уложить спать"
-    text: ""
+    text: "Уложить спать"
     finally: "Я выспался"
     min_sleep: "Я не хочу спать"
     input: False
@@ -130,8 +136,7 @@ interfaces:
   break_sleep:
     trigger: "Разрубить"
     img: "None"
-    name: "Разрубить"
-    text: ""
+    text: "Разрубить"
     input: False
     func: "break_sleep_interface"
     buttons: "parse_actions"
@@ -139,18 +144,27 @@ interfaces:
   select_food:
     trigger: "Покормить"
     img: "None"
-    name: "Выбор еды"
-    text: ""
+    text: "Выбор еды"
     input: True
     func: "None"
-    next_state: "feed"
+    next_state: "select_amount_food"
     buttons: parse_food
+
+  select_amount_food:
+    trigger: ""
+    img: "None"
+    text: "Выберите количество еды"
+    input: True
+    func: "save_selected_food"
+    next_state: "feed"
+    buttons_style: "{0} (🍎{1})"
+    buttons_in_row: 3
+    buttons: parse_food_amount
 
   feed:
     trigger: ""
     img: "None"
-    name: "Вы покормили животное"
-    text: ""
+    text: "Вы покормили животное"
     input: False
     func: "feed_interface"
     buttons: "parse_actions"
@@ -158,8 +172,7 @@ interfaces:
   collect_food:
     trigger: "Сбор еды"
     img: "None"
-    name: "Укажите количество еды для сбора"
-    text: ""
+    text: "Укажите количество еды для сбора"
     finally: "Черепашка закончила сбор еды"
     input: True
     func: "None"
@@ -174,8 +187,7 @@ interfaces:
   choose_amount_collect_food:
     trigger: ""
     img: "None"
-    name: "Черепашка отправилась собирает еду"
-    text: ""
+    text: "Черепашка отправилась собирает еду"
     input: False
     func: "start_collect_food_interface"
     buttons: "parse_actions"
@@ -183,8 +195,7 @@ interfaces:
   progress_collect_food:
     trigger: "Прогресс"
     img: "None"
-    name: "Прогресс сбора"
-    text: "Собрано: {0}/{1}"
+    text: "Прогресс сбора\nСобрано: {0}/{1}"
     input: False
     func: "progress_collect_food_interface"
     buttons: "parse_actions"
@@ -192,7 +203,6 @@ interfaces:
   break_collect_food:
     trigger: "Прекратить сбор"
     img: "None"
-    name: "Прогресс сбора"
     text: "Сбор еды прекращен. Собрано: {0}/{1}"
     input: False
     func: "break_collect_food_interface"
@@ -201,9 +211,8 @@ interfaces:
   inventory:
     trigger: "Инвентарь"
     img: "None"
-    name: "Инвентарь:"
-    text: ""
-    item_text: "{0} [{1}]\n"
+    text: "Инвентарь:\n"
+    item_text: "- {0} [{1}]\n"
     input: False
     func: "get_inventory_interface"
     buttons: 
@@ -229,6 +238,9 @@ errors:
   too_much_food_for_collect: "Превышен лимит для сбора еды\nЛимит: {0}"
   not_collecting: "Черепашка не собирает еду"
   not_int: "Вы отправили не число"
+  not_enough_food: "У вас недостаточно еды"
+  not_have_food: "У вас нету этой еды"
+
 
 
 states:
@@ -266,7 +278,8 @@ buttons:
     
   not_have_pet:
     - "/start"
-  
+
+    
   main_menu: "Главное меню"
   actions: "Действия"
   
