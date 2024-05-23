@@ -76,9 +76,13 @@ except yaml.YAMLError as e:
 
 morph = pymorphy3.MorphAnalyzer(lang="ru")
 
-from core.database import base, engine
+from core.database import Base, engine_db
 
-base.metadata.create_all(engine)
+async def init_models():
+    async with engine_db.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
 
 
 # Инициализация бота
