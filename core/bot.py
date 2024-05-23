@@ -5,6 +5,7 @@ from core.database import set_state, AsyncSessionLocal, States, db
 from core.engine import break_collect_food
 
 
+
 # @bot.message_handler(commands=["start"])
 # async def start_handler(message):
 #     markup = await generate_markup(messages["bot"]["start"]["buttons"])

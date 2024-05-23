@@ -4,7 +4,7 @@ collect_food:
 engine:
   pet_tasks_time: 300
   sadness_index: 1
-  time_of_last_check: '2024-05-23T17:23:51.684116'
+  time_of_last_check: '2024-05-23T12:27:20.422786'
 food:
   collect_index: 2
   hunger_index: 1

@@ -1,4 +1,5 @@
 from core import config, logging, messages, bot, config_path
+
 from core.database import Pet, AsyncSessionLocal, get_data, db, get_inventory
 from core.utils import user_send, generate_markup
 
@@ -369,7 +370,6 @@ async def break_collect_food(id):
                 return False, messages["errors"]["dead"]
         else:
             return False, messages["errors"]["not_have_pet"]
-           
 
 
 async def check_indexes(id):
