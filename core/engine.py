@@ -1,6 +1,7 @@
 from core import config, logging, messages, bot, config_path
-from core.database import Pet, AsyncSessionLocal, get_data, db
-from core.utils import user_send
+
+from core.database import Pet, AsyncSessionLocal, get_data, db, get_inventory
+from core.utils import user_send, generate_markup
 
 from datetime import datetime, timedelta
 import asyncio
@@ -220,29 +221,44 @@ async def play(id):
 
 async def feed(id, food):
     async with AsyncSessionLocal() as session:
-        result = await session.execute(db.select(Pet).filter(Pet.id == id, Pet.status == "live"))
+        result = await session.execute(db.select(Pet).filter(Pet.id == id))
         pet = result.scalar_one_or_none()
-        if pet and pet.state == "nothing":
-            for key, value in config["food"].items():
-                if value["name"] == food:
-                    index = value["feed_index"]
-            pet.satiety = min(pet.satiety + index, 100)
-            await session.commit()
-            return True, ""
-        return False, messages["pet"]["busy"]
+        if pet:
+            if pet.status == "live":
+                if pet.state == "nothing":
+                    for key, value in config["food"]['list'].items():
+                        if value["name"] == food:
+                            index = value["feed_index"]
+                    pet.satiety = min(pet.satiety + index, 100)
+                    await session.commit()
+                    return True, ""
+                else:
+                    return False, messages["pet"]["busy"]
+            else:
+                return False, messages["pet"]["dead"]
+        else:
+            return False, messages["pet"]["not_have_pet"]
 
 
 async def start_sleep(id):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.id == id, Pet.status == "live"))
         pet = result.scalar_one_or_none()
-        if pet and pet.state == "nothing" and pet.sleep <= config['sleep']['min_sleep_index']:
-            pet.state = "sleeping"
-            await session.commit()
-            return True, ""
-        if pet.sleep > config['sleep']['min_sleep_index']:
-            return False, messages['interfaces']['sleep']['min_sleep']
-        return False, messages["pet"]["busy"]
+        if pet:
+            if pet.status == "live":
+                if pet.state == "nothing":
+                    if pet.sleep <= config['sleep']['min_sleep_index']:
+                        pet.state = "sleeping"
+                        await session.commit()
+                        return True, ""
+                    else:
+                        return False, messages['interfaces']['sleep']['min_sleep']
+                else:
+                    return False, messages["pet"]["busy"]
+            else:
+                return False, messages["pet"]["dead"]
+        else:
+            return False, messages["pet"]["not_have_pet"]
 
 
 async def break_sleep(id):
@@ -268,6 +284,92 @@ async def sleep(id):
                 pet.state = 'nothing'
                 await user_send(pet.user_id, messages['interfaces']['sleep']['finally'])
             await session.commit()
+
+
+async def start_collect_food(id, amount):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.id == id, Pet.status == "live"))
+        pet = result.scalar_one_or_none()
+        if pet:
+            if pet.status == "live":
+                if pet.state == "nothing":
+                        pet.state = "collecting"
+                        data = await get_data(pet.id)
+                        data['required_amount_collect_food'] = amount
+                        data['collected_food'] = 0
+                        pet.data = str(data)
+                        await session.commit()
+                        return True, ""
+                else:
+                    return False, messages["pet"]["busy"]
+            else:
+                return False, messages["pet"]["dead"]
+        else:
+            return False, messages["pet"]["not_have_pet"]
+
+
+async def collect_food(id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.id == id, Pet.status == "live"))
+        pet = result.scalar_one_or_none()
+        if pet and pet.state == "collecting":
+            if random.random() < config['collect_food']['chance']:
+                await hunger(config['food']['collect_index'])
+                data = await get_data(pet.id)
+                inventory = await get_inventory(pet.id)
+                can_find_food = [key for key, value in config['food']['list'].items() if value['can_find']]
+                food_name = random.choice(can_find_food)
+                if data['collected_food'] < data['required_amount_collect_food']:
+                    data['collected_food'] += 1
+                    now_amount = inventory.get(food_name)
+                    if now_amount is not None:
+                        now_amount = now_amount['amount']
+                    else:
+                        now_amount = 0
+                    inventory[food_name] = {
+                        "name": config['food']['list'][food_name]['name'],
+                        "amount": now_amount + 1,
+                        "class": "food"
+                    }
+                    
+                    if data['collected_food'] == data['required_amount_collect_food']:
+                        pet.state = 'nothing'
+                        await user_send(pet.user_id, messages['interfaces']['collect_food']['finally'])
+                        
+                else:
+                    pet.state = 'nothing'
+                    await user_send(pet.user_id, messages['interfaces']['collect_food']['finally'])
+                
+                pet.data = str(data)
+                pet.inventory = str(inventory)
+                await session.commit()
+                return True, ""
+
+
+async def break_collect_food(id):  
+    from core.interface import parse_actions
+    
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.id == id, Pet.status == "live"))
+        pet = result.scalar_one_or_none()
+        if pet:
+            if pet.status == "live":
+                if pet.state == "collecting":
+                            pet.state = "nothing"
+                            await session.commit()
+                            data = await get_data(pet.id)
+                            required = data['required_amount_collect_food']
+                            collected = data['collected_food']
+                            
+                            markup = await parse_actions(pet.user_id)
+                            
+                            return True, messages["interfaces"]["break_collect_food"]["break_collect_food"].format(collected, required)
+                else:
+                    return False, messages["errors"]["not_collecting"]
+            else:
+                return False, messages["errors"]["dead"]
+        else:
+            return False, messages["errors"]["not_have_pet"]
 
 
 async def check_indexes(id):
@@ -298,6 +400,7 @@ async def edit_pet():
             await play(pet.id)
             await sleep(pet.id)
             await check_indexes(pet.id)
+            await collect_food(pet.id)
 
 
 async def pet_tasks():

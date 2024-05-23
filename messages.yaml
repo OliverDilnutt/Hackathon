@@ -74,6 +74,7 @@ interfaces:
     buttons:
       - "Инфо"
       - "Действия"
+      - "Инвентарь"
       - "Профиль"
 
   actions:
@@ -154,6 +155,63 @@ interfaces:
     func: "feed_interface"
     buttons: "parse_actions"
 
+  collect_food:
+    trigger: "Сбор еды"
+    img: "None"
+    name: "Укажите количество еды для сбора"
+    text: ""
+    finally: "Черепашка закончила сбор еды"
+    input: True
+    func: "None"
+    next_state: "choose_amount_collect_food"
+    buttons_in_row: 3
+    buttons:
+      - "10"
+      - "25"
+      - "50"
+      - "Действия"
+
+  choose_amount_collect_food:
+    trigger: ""
+    img: "None"
+    name: "Черепашка отправилась собирает еду"
+    text: ""
+    input: False
+    func: "start_collect_food_interface"
+    buttons: "parse_actions"
+
+  progress_collect_food:
+    trigger: "Прогресс"
+    img: "None"
+    name: "Прогресс сбора"
+    text: "Собрано: {0}/{1}"
+    input: False
+    func: "progress_collect_food_interface"
+    buttons: "parse_actions"
+
+  break_collect_food:
+    trigger: "Прекратить сбор"
+    img: "None"
+    name: "Прогресс сбора"
+    text: "Сбор еды прекращен. Собрано: {0}/{1}"
+    input: False
+    func: "break_collect_food_interface"
+    buttons: "parse_actions"
+
+  inventory:
+    trigger: "Инвентарь"
+    img: "None"
+    name: "Инвентарь:"
+    text: ""
+    item_text: "{0} [{1}]\n"
+    input: False
+    func: "get_inventory_interface"
+    buttons: 
+      - "Инфо"
+      - "Действия"
+      - "Инвентарь"
+      - "Профиль"
+
 
   not_found:
     trigger: ""
@@ -167,12 +225,16 @@ errors:
   game_not_found: "Игра не найдена"
   food_not_found: "Еда не найдена"
   name_too_long: "Имя слишком длинное. Оно должно быть не больше 20 символов"
-
+  dead: "Ваше животное умерло"
+  too_much_food_for_collect: "Превышен лимит для сбора еды\nЛимит: {0}"
+  not_collecting: "Черепашка не собирает еду"
+  not_int: "Вы отправили не число"
 
 states:
   nothing: "Ничего не делаю"
   playing: "Играю"
   sleeping: "Сплю"
+  collecting: "Собираю еду"
 
 
 statuses:
@@ -185,6 +247,7 @@ buttons:
       - "Покормить"
       - "Играть"
       - "Уложить спать"
+      - "Сбор еды"
       - "Инфо"
 
     playing:
@@ -195,8 +258,16 @@ buttons:
       - "Разрубить"
       - "Инфо"
     
+    collecting:
+      - "Прогресс"
+      - "Прекратить сбор"
+      - "Инфо"
+    
   not_have_pet:
     - "/start"
+  
+  main_menu: "Главное меню"
+  actions: "Действия"
 
 
 time_names:

@@ -1,7 +1,8 @@
 from core import config, messages, morph
-from core.database import AsyncSessionLocal, Pet, States, new_user, db
+from core.database import AsyncSessionLocal, Pet, States, new_user, db, get_data, get_inventory
 from core.utils import generate_markup, create_info_image
-from core.engine import new_pet, save_pet_name, save_random_pet_name, start_play, break_play, get_age, start_sleep, break_sleep, feed
+from core.engine import new_pet, save_pet_name, save_random_pet_name, start_play, break_play, get_age, start_sleep, break_sleep, feed, start_collect_food, break_collect_food
+
 
 
 async def check_triggers(user_id, text):
@@ -23,8 +24,8 @@ async def show_interface(user_id, interface_name, input=False):
     text = messages["interfaces"][interface_name]["text"]
     img = messages["interfaces"][interface_name]["img"]
     markup = messages["interfaces"][interface_name]["buttons"]
-    func = messages["interfaces"][interface_name]["func"]
-    pet_required = messages["interfaces"][interface_name].get("pet_required")
+    buttons_in_row = messages["interfaces"][interface_name].get('buttons_in_row')
+    func = messages["interfaces"][interface_name]["func"]  
     
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
@@ -56,11 +57,17 @@ async def show_interface(user_id, interface_name, input=False):
     if type(markup) is not list:
         markup_func = globals().get(markup)
         if markup_func:
-            markup = await markup_func(user_id=user_id)
+            if buttons_in_row is not None:
+                markup = await markup_func(user_id=user_id, buttons_in_row=buttons_in_row)
+            else:
+                markup = await markup_func(user_id=user_id)
     else:
-        markup = await generate_markup(markup)
+        if buttons_in_row is not None:
+            markup = await generate_markup(markup, buttons_in_row=buttons_in_row)
+        else:
+            markup = await generate_markup(markup)
         
-    if name is None and text is None and pet is None:
+    if (name == messages['errors']['not_have_pet'] or text == messages['errors']['not_have_pet']) and pet is None:
         name = messages['errors']['not_have_pet']
         text = ""
         img = "None"
@@ -79,14 +86,23 @@ async def parse_actions(user_id):
 async def parse_games(user_id):
     games = config['games']['list']
     game_names_list = [games[game]['name'] for game in games]
+    game_names_list.append(messages['buttons']['actions'])
     markup = await generate_markup(game_names_list)
     return markup
 
 async def parse_food(user_id):
-    foods = config['food']['list']
-    food_names_list = [foods[food]['name'] for food in foods]
-    markup = await generate_markup(food_names_list)
-    return markup
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+    if pet:
+        foods = await get_inventory(pet.id)
+        foods = [value['name'] for key, value in foods.items() if value['class'] == 'food']
+        foods.append(messages['buttons']['actions'])
+        markup = await generate_markup(foods)
+        return markup
+    else:
+        return await generate_markup(messages['buttons']['main_menu'])
+      
 
 async def format_pet_info(user_id):
     async with AsyncSessionLocal() as session:
@@ -108,8 +124,11 @@ async def start_sleep_interface(user_id):
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
         if pet:
-            await start_sleep(pet.id)
-            return True, ""
+            status, text = await start_sleep(pet.id)
+            if status:
+                return True, ""
+            else:
+                return False, text
         else:
             return False, messages["errors"]["not_have_pet"]
 
@@ -164,5 +183,71 @@ async def feed_interface(user_id, input):
                         return False, text
             else:
                 return False, messages["errors"]["food_not_found"]
+              
+        else:
+            return False, messages["errors"]["not_have_pet"]
+        
+        
+async def start_collect_food_interface(user_id, input):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            if input.isdigit():
+                amount = int(input)
+                if amount <= config['collect_food']['max_collect_food']:
+                    status, text = await start_collect_food(pet.id, amount)
+                    if status:
+                        return True, ""
+                    else:
+                        return False, text
+                else:
+                    return False, messages["errors"]["too_much_food_for_collect"].format(config['collect_food']['max_collect_food'])
+            else:
+                return False, messages["errors"]["not_int"]
+        else:
+            return False, messages["errors"]["not_have_pet"]
+        
+        
+async def progress_collect_food_interface(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            if pet.state == 'collecting':
+                data = await get_data(pet.id)
+                text = messages['interfaces']['progress_collect_food']['text'].format(data['collected_food'], data['required_amount_collect_food'])
+                return True, text
+            else:
+                return False, messages["errors"]["not_collecting"]
+        else:
+            return False, messages["errors"]["not_have_pet"]
+        
+        
+async def break_collect_food_interface(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+    if pet:
+        status, text = await break_collect_food(pet.id)
+        
+        if status:
+            return True, text
+        else:
+            return False, text
+    else:
+        return False, messages["errors"]["not_have_pet"]
+        
+        
+async def get_inventory_interface(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            inventory = await get_inventory(pet.id)
+            text = ''
+            for item_name, item_data in inventory.items():
+                text += messages['interfaces']['inventory']['item_text'].format(item_data['name'], item_data['amount'])
+            return True, text
         else:
             return False, messages["errors"]["not_have_pet"]

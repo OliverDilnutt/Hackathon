@@ -11,20 +11,20 @@ from core import config, logging, messages, bot
 from core.database import States, AsyncSessionLocal, Pet, db, get_data
 
 
-async def generate_markup(buttons):
+async def generate_markup(buttons, buttons_in_row=2):
     markup = telebot.async_telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     row = []
     for button in buttons:
         if button != 'None':
             row.append(button)
-            if len(row) == 2:
+            if len(row) == buttons_in_row:
                 markup.row(*row)
                 row = []
 
     if row:
         markup.row(*row)
 
-    return markup
+    return markup    
 
 
 # Отправка сообщения владельцу бота
