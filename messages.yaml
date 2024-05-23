@@ -8,7 +8,6 @@ interfaces:
     func: "new_user"
     buttons:
       - "Начать играть"
-    pet_required: False
 
   start_game:
     trigger: "Начать играть"
@@ -19,7 +18,6 @@ interfaces:
     func: "None"
     buttons: 
       - "Вылупление из яйца"
-    pet_required: False
 
   new_pet:
     trigger: "Вылупление из яйца"
