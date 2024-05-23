@@ -74,6 +74,7 @@ async def show_interface(user_id, interface_name, input=False):
         markup = await generate_markup(messages['buttons']['not_have_pet'])
     return name, text, img, markup
 
+
 async def parse_actions(user_id):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
