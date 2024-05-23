@@ -1,7 +1,7 @@
 from core import config, messages, morph
 from core.database import AsyncSessionLocal, Pet, States, new_user, db
 from core.utils import generate_markup, create_info_image
-from core.engine import new_pet, save_pet_name, save_random_pet_name, start_play, break_play, get_age, start_sleep, break_sleep, feed
+from core.engine import new_pet, save_pet_name, save_random_pet_name, start_play, break_play, get_age, start_sleep, break_sleep, feed, start_collect_food
 
 
 async def check_triggers(user_id, text):
@@ -24,7 +24,6 @@ async def show_interface(user_id, interface_name, input=False):
     img = messages["interfaces"][interface_name]["img"]
     markup = messages["interfaces"][interface_name]["buttons"]
     func = messages["interfaces"][interface_name]["func"]
-    pet_required = messages["interfaces"][interface_name].get("pet_required")
     
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
@@ -60,12 +59,13 @@ async def show_interface(user_id, interface_name, input=False):
     else:
         markup = await generate_markup(markup)
         
-    if name is None and text is None and pet is None:
+    if (name == messages['errors']['not_have_pet'] or text == messages['errors']['not_have_pet']) and pet is None:
         name = messages['errors']['not_have_pet']
         text = ""
         img = "None"
         markup = await generate_markup(messages['buttons']['not_have_pet'])
     return name, text, img, markup
+
 
 async def parse_actions(user_id):
     async with AsyncSessionLocal() as session:
@@ -79,12 +79,14 @@ async def parse_actions(user_id):
 async def parse_games(user_id):
     games = config['games']['list']
     game_names_list = [games[game]['name'] for game in games]
+    game_names_list.append(messages['buttons']['main_menu'])
     markup = await generate_markup(game_names_list)
     return markup
 
 async def parse_food(user_id):
     foods = config['food']['list']
     food_names_list = [foods[food]['name'] for food in foods]
+    food_names_list.append(messages['buttons']['main_menu'])
     markup = await generate_markup(food_names_list)
     return markup
 
@@ -108,8 +110,11 @@ async def start_sleep_interface(user_id):
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
         if pet:
-            await start_sleep(pet.id)
-            return True, ""
+            status, text = await start_sleep(pet.id)
+            if status:
+                return True, ""
+            else:
+                return False, text
         else:
             return False, messages["errors"]["not_have_pet"]
 
@@ -164,5 +169,23 @@ async def feed_interface(user_id, input):
                         return False, text
             else:
                 return False, messages["errors"]["food_not_found"]
+        else:
+            return False, messages["errors"]["not_have_pet"]
+        
+        
+async def start_collect_food_interface(user_id, input):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            amount = int(input)
+            if amount <= config['collect_food']['max_collect_food']:
+                status, text = await start_collect_food(pet.id, amount)
+                if status:
+                    return True, ""
+                else:
+                    return False, text
+            else:
+                return False, messages["errors"]["too_much_food_for_collect"].format(config['collect_food']['max_collect_food'])
         else:
             return False, messages["errors"]["not_have_pet"]

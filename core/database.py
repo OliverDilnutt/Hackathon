@@ -26,6 +26,7 @@ class Pet(Base):
     born = db.Column(db.String, default=datetime.now())
     death = db.Column(db.String, nullable=True)
     data = db.Column(db.String, default="{}")
+    inventory = db.Column(db.String, default="{}")
     state = db.Column(db.String, default="nothing")
     status = db.Column(db.Integer, default="live")
 
@@ -52,6 +53,15 @@ async def get_data(id):
         pet = result.scalar_one_or_none()
         if pet:
             return ast.literal_eval(pet.data)
+        return {}
+    
+    
+async def get_inventory(id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.id == id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            return ast.literal_eval(pet.inventory)
         return {}
 
 
