@@ -11,7 +11,9 @@ from core import messages
 
 Base = declarative_base()
 engine_db = create_async_engine("sqlite+aiosqlite:///bot.db", echo=False)
-AsyncSessionLocal = sessionmaker(bind=engine_db, class_=AsyncSession, expire_on_commit=False)
+AsyncSessionLocal = sessionmaker(
+    bind=engine_db, class_=AsyncSession, expire_on_commit=False
+)
 
 
 class Pet(Base):
@@ -20,17 +22,17 @@ class Pet(Base):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String, nullable=True)
+    health = db.Column(db.Integer, default=100)
     satiety = db.Column(db.Integer, default=100)
     happiness = db.Column(db.Integer, default=100)
-    health = db.Column(db.Integer, default=100)
     sleep = db.Column(db.Integer, default=100)
-    born = db.Column(db.String, default=datetime.now())
+    born = db.Column(db.String, nullable=True)
     death = db.Column(db.String, nullable=True)
     data = db.Column(db.String, default="{}")
     inventory = db.Column(db.String, default="{}")
     lvl = db.Column(db.Integer, default=1)
     state = db.Column(db.String, default="nothing")
-    status = db.Column(db.Integer, default="live")
+    status = db.Column(db.Integer, default="hatching")
 
 
 class States(Base):
@@ -56,8 +58,8 @@ async def get_data(id):
         if pet:
             return ast.literal_eval(pet.data)
         return {}
-    
-    
+
+
 async def get_inventory(id):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.id == id))
@@ -69,7 +71,9 @@ async def get_inventory(id):
 
 async def new_user(user_id):
     async with AsyncSessionLocal() as session:
-        result = await session.execute(db.select(States).filter(States.user_id == user_id))
+        result = await session.execute(
+            db.select(States).filter(States.user_id == user_id)
+        )
         user = result.scalar_one_or_none()
         if not user:
             user = States(user_id=user_id)
