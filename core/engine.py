@@ -1,5 +1,4 @@
 from core import config, logging, messages, bot, config_path
-
 from core.database import Pet, AsyncSessionLocal, get_data, db, get_inventory
 from core.utils import user_send, generate_markup
 
@@ -371,31 +370,6 @@ async def break_collect_food(id):
         else:
             return False, messages["errors"]["not_have_pet"]
            
-
-async def break_collect_food(id):  
-    from core.interface import parse_actions
-    
-    async with AsyncSessionLocal() as session:
-        result = await session.execute(db.select(Pet).filter(Pet.id == id, Pet.status == "live"))
-        pet = result.scalar_one_or_none()
-        if pet:
-            if pet.status == "live":
-                if pet.state == "collecting":
-                            pet.state = "nothing"
-                            await session.commit()
-                            data = await get_data(pet.id)
-                            required = data['required_amount_collect_food']
-                            collected = data['collected_food']
-                            
-                            markup = await parse_actions(pet.user_id)
-                            
-                            return True, messages["interfaces"]["break_collect_food"]["break_collect_food"].format(collected, required)
-                else:
-                    return False, messages["errors"]["not_collecting"]
-            else:
-                return False, messages["errors"]["dead"]
-        else:
-            return False, messages["errors"]["not_have_pet"]
 
 
 async def check_indexes(id):

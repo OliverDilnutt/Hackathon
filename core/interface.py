@@ -4,7 +4,6 @@ from core.utils import generate_markup, create_info_image
 from core.engine import new_pet, save_pet_name, save_random_pet_name, start_play, break_play, get_age, start_sleep, break_sleep, feed, start_collect_food, break_collect_food
 
 
-
 async def check_triggers(user_id, text):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(States).filter(States.user_id == user_id))
@@ -103,7 +102,6 @@ async def parse_food(user_id):
         return markup
     else:
         return await generate_markup(messages['buttons']['main_menu'])
-      
 
 async def format_pet_info(user_id):
     async with AsyncSessionLocal() as session:
@@ -184,7 +182,6 @@ async def feed_interface(user_id, input):
                         return False, text
             else:
                 return False, messages["errors"]["food_not_found"]
-              
         else:
             return False, messages["errors"]["not_have_pet"]
         

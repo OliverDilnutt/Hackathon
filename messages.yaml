@@ -230,6 +230,7 @@ errors:
   not_collecting: "Черепашка не собирает еду"
   not_int: "Вы отправили не число"
 
+
 states:
   nothing: "Ничего не делаю"
   playing: "Играю"
@@ -268,6 +269,7 @@ buttons:
   
   main_menu: "Главное меню"
   actions: "Действия"
+  
 
 
 time_names:
