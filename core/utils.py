@@ -112,3 +112,19 @@ async def create_info_image(user_id):
             return True, background
         else:
             return False, messages["errors"]["not_have_pet"]
+          
+        
+async def egg_show():
+    egg = Image.open(r'Hackathon/imgs/pets/pet_egg.png')
+    egg.show()
+    back = Image.open(r'Hackathon/imgs/rooms/background_5.png')
+
+    fon = back.copy()
+
+    ### вставляем яйцо ###
+    markup_egg = (80, 350)
+    paste_egg = Image.new('RGBA', fon.size, color=(0, 0, 0, 0))
+    paste_egg.paste(egg, box=markup_egg)
+    fon.alpha_composite(paste_egg)
+
+    return fon
