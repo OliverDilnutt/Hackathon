@@ -323,9 +323,9 @@ async def feed(id, food, amount):
                 else:
                     return False, messages["pet"]["busy"]
             else:
-                return False, messages["pet"]["dead"]
+                return False, messages["errors"]["dead"]
         else:
-            return False, messages["pet"]["not_have_pet"]
+            return False, messages["errors"]["not_have_pet"]
 
 
 async def start_sleep(id):
@@ -513,8 +513,7 @@ async def final_hatching_after_restart(id):
     now = datetime.now()
     elapsed_seconds = (now - start_hatching).seconds
     hatching_timer = config["engine"]["hatching_timer"]
-
-    if elapsed_seconds < hatching_timer:
+    if elapsed_seconds >= hatching_timer:
         async with AsyncSessionLocal() as session:
             result = await session.execute(db.select(Pet).filter(Pet.id == id))
             pet = result.scalar_one_or_none()
@@ -528,9 +527,6 @@ async def final_hatching_after_restart(id):
                     messages["interfaces"]["hatching_finally"]["buttons"]
                 ),
             )
-    else:
-        timer = hatching_timer - elapsed_seconds
-        asyncio.create_task(change_status_after_timer(id, timer))
 
 
 # Automatic updates

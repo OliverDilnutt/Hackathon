@@ -8,10 +8,10 @@ import asyncio
 from PIL import Image, ImageFont, ImageDraw, ImageOps
 
 from core import config, logging, messages, bot
-from core.database import States, AsyncSessionLocal, Pet, db, get_data
+from core.database import States, AsyncSessionLocal, Pet, db, get_data, get_inventory
 
 
-async def generate_markup(buttons, buttons_in_row=2):
+async def generate_markup(buttons, buttons_in_row=2, special_buttons=None, special_buttons_in_row=None):
     markup = telebot.async_telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     row = []
     for button in buttons:
@@ -20,9 +20,19 @@ async def generate_markup(buttons, buttons_in_row=2):
             if len(row) == buttons_in_row:
                 markup.row(*row)
                 row = []
-
     if row:
         markup.row(*row)
+    
+    if special_buttons:
+        row = []
+        for button in special_buttons:
+            if button!= "None":
+                row.append(button)
+                if len(row) == special_buttons_in_row:
+                    markup.row(*row)
+                    row = []
+        if row:
+            markup.row(*row)
 
     return markup
 
@@ -44,6 +54,103 @@ async def remove_patterns(input_text):
     for pattern in patterns:
         input_text = re.sub(pattern, '', input_text)
     return input_text
+
+
+async def get_current_page(user_id):
+    async with AsyncSessionLocal() as session:
+        state = await session.execute(
+            db.select(States).filter(States.user_id == user_id)
+        )
+        state = state.scalar_one_or_none()
+        if state:
+            return state.current_page
+
+
+async def update_current_page(user_id, new_page):
+    async with AsyncSessionLocal() as session:
+        state = await session.execute(
+            db.select(States).filter(States.user_id == user_id)
+        )
+        state = state.scalar_one_or_none()
+        if state:
+            state.current_page = new_page
+        await session.commit()
+
+
+async def generate_paginated_markup(items, page, items_per_page, buttons_in_row):
+    total_items = len(items)
+    total_pages = (total_items + items_per_page - 1) // items_per_page
+
+    start = (page - 1) * items_per_page
+    end = start + items_per_page
+    items_page = items[start:end]
+
+    actions = []
+    if page > 1:
+        actions.insert(0, messages['buttons']['back_page'])
+    actions.append(messages["buttons"]["actions"])
+    if page < total_pages:
+        actions.append(messages['buttons']['next_page'])
+    if buttons_in_row is not None:
+        markup = await generate_markup(items_page, buttons_in_row=buttons_in_row, special_buttons=actions, special_buttons_in_row=3)
+    else:
+        markup = await generate_markup(items_page, buttons_in_row=2, special_buttons=actions, special_buttons_in_row=3)
+    return markup
+
+
+async def set_message_for_delete(user_id, message_id):
+    async with AsyncSessionLocal() as session:
+        state = await session.execute(
+            db.select(States).filter(States.user_id == user_id)
+        )
+        state = state.scalar_one_or_none()
+        if state:
+            state.msg_for_delete = message_id
+        await session.commit()
+        
+        
+async def get_message_for_delete(user_id):
+    async with AsyncSessionLocal() as session:
+        state = await session.execute(
+            db.select(States).filter(States.user_id == user_id)
+        )
+        state = state.scalar_one_or_none()
+        if state:
+            return state.msg_for_delete
+        return None
+
+
+async def get_total_items(user_id, category):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+    if pet:
+        if category == 'food':
+            inventory = await get_inventory(pet.id)
+            total_items = sum(1 for item in inventory.values() if item['class'] == category)
+        elif category == 'games':
+            games = config["games"]["list"]
+            total_items = len(games)
+        return total_items
+    return 0
+
+
+async def update_current_category(user_id, category):
+    async with AsyncSessionLocal() as session:
+        states = await session.execute(db.select(States).filter(States.user_id == user_id))
+        state = states.scalar_one_or_none()
+        if state:
+            state.current_category = category
+        await session.commit()
+
+async def get_current_category(user_id):
+    async with AsyncSessionLocal() as session:
+        states = await session.execute(db.select(States).filter(States.user_id == user_id))
+        state = states.scalar_one_or_none()
+        if state:
+            return state.current_category
+        return None
+
 
 
 async def create_info_image(user_id):
