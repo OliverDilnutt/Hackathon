@@ -5,7 +5,7 @@ engine:
   hatching_timer: 600
   pet_tasks_time: 300
   sadness_index: 1
-  time_of_last_check: '2024-05-24T14:18:26.535097'
+  time_of_last_check: '2024-05-24T19:24:10.496658'
 food:
   collect_index: 2
   hunger_index: 1
@@ -84,6 +84,12 @@ imgs:
   path_panels_folder: imgs/panels/
   path_pets_folder: imgs/pets/
   path_rooms_folder: imgs/rooms/
+lvl:
+  collecting: 10
+  experience: 100
+  lvl_up_for_activity_by_time: 1800
+  playing: 15
+  sleeping: 5
 play:
   break_play_index: 5
   play_again_index: 15
@@ -91,7 +97,7 @@ play:
   zero_health_index: 1
 secret:
   owner_id: OWNER_ID
-  telegram_token: 5683713666:AAH8GlMmZs_gbRuZ4UV7iA8_2vny2hfldxo
+  telegram_token: 5683713666:AAEqls37jArqSUBA7EaBfp9f9qxgsTxBQJU
 sleep:
   break_sleep_index: 5
   health_sleep_index: 1

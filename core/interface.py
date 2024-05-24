@@ -1,7 +1,7 @@
 from datetime import datetime
 from math import ceil
 
-from core import config, messages, morph
+from core import config, messages, morph, bot
 from core.database import (
     AsyncSessionLocal,
     Pet,
@@ -11,7 +11,7 @@ from core.database import (
     get_data,
     get_inventory
 )
-from core.utils import generate_markup, create_info_image, egg_show, get_current_page, generate_paginated_markup, update_current_category, update_current_page
+from core.utils import generate_markup, create_info_image, egg_show, get_current_page, generate_paginated_markup, update_current_category, update_current_page, ranking
 from core.engine import (
     new_pet,
     save_pet_name,
@@ -110,10 +110,23 @@ async def show_interface(user_id, interface_name, input=False):
     ):
         status, text = await hatching_check_interface(user_id)
         status, img = await egg_show(user_id)
-        markup = await generate_markup(
-            messages["interfaces"]["hatching_check"]["buttons"]
-        )
+        markup = await parse_hatching_check(user_id)
     return text, img, markup
+
+
+async def parse_hatching_check(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            if pet.status == "hatching":
+                buttons = messages['buttons']['hatching']['in_time']
+                markup = await generate_markup(buttons)
+                return markup
+            else:
+                buttons =messages['buttons']['hatching']['out_of_time']
+                markup = await generate_markup(buttons)
+                return markup
 
 
 async def parse_actions(user_id, buttons_in_row=None):
@@ -452,3 +465,29 @@ async def get_inventory_interface(user_id):
             return True, text
         else:
             return False, messages["errors"]["not_have_pet"]
+
+
+async def user_info(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            user = await bot.get_chat(user_id)
+
+            inventory = await get_inventory(user.id)
+            items_amount = 0
+            for item_name, item_data in inventory.items():
+                items_amount += item_data["amount"]
+            
+            age = await get_age(pet.id)
+            age_time_name = messages["time_names"][age[1]]
+            agreed_word = morph.parse(age_time_name)[0]
+            agreed_word = agreed_word.make_agree_with_number(age[0]).word
+            age = f"{age[0]} {agreed_word}"
+            
+            text = messages["interfaces"]["user_info"]["text"].format(
+                user.username, user.id, pet.name, messages["statuses"][pet.status], pet.lvl, pet.experience, age, items_amount
+            )
+            return True, text
+        else:
+            return False, messages["errors"]["not_have_user"]
