@@ -20,12 +20,21 @@ async def new_pet(user_id):
 
             files_pets = os.listdir(config["imgs"]["path_pets_folder"])
             files_rooms = os.listdir(config["imgs"]["path_rooms_folder"])
+            files_panels = os.listdir(config["imgs"]["path_panels_folder"])
+            files_backgrounds = os.listdir(config["imgs"]["path_backgrounds_folder"])
+            files_eggs = os.listdir(config["imgs"]["path_eggs_folder"])
 
             random_pet = files_pets[random.randint(0, len(files_pets) - 1)]
             random_room = files_rooms[random.randint(0, len(files_rooms) - 1)]
+            random_panel = files_panels[random.randint(0, len(files_panels) - 1)]
+            random_background = files_backgrounds[random.randint(0, len(files_backgrounds) - 1)]
+            random_egg = files_eggs[random.randint(0, len(files_eggs) - 1)]
             data = await get_data(pet.id)
             data["pet_img"] = random_pet
             data["room_img"] = random_room
+            data['panel_img'] = random_panel
+            data["background_img"] = random_background
+            data["egg_img"] = random_egg
             pet.data = str(data)
             await session.commit()
             return True, ""
@@ -496,19 +505,50 @@ async def check_indexes(id):
             await session.commit()
 
 
+async def final_hatching_after_restart(id):
+    data = await get_data(id)
+    start_hatching = datetime.strptime(
+        data["start_hatching"], "%Y-%m-%d %H:%M:%S.%f"
+    )
+    now = datetime.now()
+    elapsed_seconds = (now - start_hatching).seconds
+    hatching_timer = config["engine"]["hatching_timer"]
+
+    if elapsed_seconds < hatching_timer:
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(db.select(Pet).filter(Pet.id == id))
+            pet = result.scalar_one_or_none()
+            pet.status = "live"
+            pet.born = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+            await session.commit()
+            await user_send(
+                pet.user_id,
+                messages["interfaces"]["hatching_finally"]["text"],
+                await generate_markup(
+                    messages["interfaces"]["hatching_finally"]["buttons"]
+                ),
+            )
+    else:
+        timer = hatching_timer - elapsed_seconds
+        asyncio.create_task(change_status_after_timer(id, timer))
+
+
 # Automatic updates
 async def edit_pet():
     async with AsyncSessionLocal() as session:
-        result = await session.execute(db.select(Pet).filter(Pet.status == "live"))
+        result = await session.execute(db.select(Pet))
         pets = result.scalars().all()
         for pet in pets:
-            await hunger(pet.id)
-            await sadness(pet.id)
-            await sleep_down(pet.id)
-            await play(pet.id)
-            await sleep(pet.id)
-            await check_indexes(pet.id)
-            await collect_food(pet.id)
+            if pet.status == "hatching":
+                await final_hatching_after_restart(pet.id)
+            if pet.status == "live":
+                await hunger(pet.id)
+                await sadness(pet.id)
+                await sleep_down(pet.id)
+                await play(pet.id)
+                await sleep(pet.id)
+                await check_indexes(pet.id)
+                await collect_food(pet.id)
 
 
 async def pet_tasks():

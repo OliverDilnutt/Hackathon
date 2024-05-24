@@ -5,7 +5,7 @@ import ast
 from sqlalchemy import func
 from datetime import datetime, timedelta
 import asyncio
-from PIL import Image, ImageFont, ImageDraw
+from PIL import Image, ImageFont, ImageDraw, ImageOps
 
 from core import config, logging, messages, bot
 from core.database import States, AsyncSessionLocal, Pet, db, get_data
@@ -60,14 +60,14 @@ async def create_info_image(user_id):
             pet_img = Image.open(
                 f"{config['imgs']['path_pets_folder']}/{data['pet_img']}", "r"
             )
-            panel_img = Image.open("imgs/panels/panel_1.png", "r")
+            panel_img = Image.open(f"{config['imgs']['path_panels_folder']}/{data['panel_img']}", "r")
 
             background.paste(
                 pet_img, (100, background.height - pet_img.height - 5), pet_img
             )
 
             font = ImageFont.truetype(
-                f"{config['imgs']['font_path']}", config["imgs"]["font_size"]
+                f"{config['imgs']['font_path']}", config["imgs"]["font_size_info"]
             )
             draw = ImageDraw.Draw(panel_img)
 
@@ -114,17 +114,38 @@ async def create_info_image(user_id):
             return False, messages["errors"]["not_have_pet"]
           
         
-async def egg_show():
-    egg = Image.open(r'Hackathon/imgs/pets/pet_egg.png')
-    egg.show()
-    back = Image.open(r'Hackathon/imgs/rooms/background_5.png')
-
-    fon = back.copy()
-
-    ### вставляем яйцо ###
-    markup_egg = (80, 350)
-    paste_egg = Image.new('RGBA', fon.size, color=(0, 0, 0, 0))
-    paste_egg.paste(egg, box=markup_egg)
-    fon.alpha_composite(paste_egg)
-
-    return fon
+async def egg_show(user_id):
+    from core.interface import hatching_check_interface
+    
+    async with AsyncSessionLocal() as session:
+        pet = await session.execute(
+            db.select(Pet).filter(Pet.user_id == user_id and Pet.status == "live")
+        )
+        pet = pet.scalar_one_or_none()
+        if pet:
+            data = await get_data(pet.id)
+            background = Image.open(f"{config['imgs']['path_backgrounds_folder']}/{data['background_img']}", 'r')
+            egg = Image.open(f"{config['imgs']['path_eggs_folder']}/{data['egg_img']}", 'r')
+            egg = ImageOps.scale(egg, 0.5, resample=Image.LANCZOS)
+            markup_egg = (0, 50)
+            background.paste(egg, markup_egg, egg)
+            
+            font = ImageFont.truetype(
+                f"{config['imgs']['font_path']}", config["imgs"]["font_size_eggs"]
+            )
+            
+            status, text = await hatching_check_interface(pet.user_id, True)
+            
+            if status:
+                draw = ImageDraw.Draw(background)
+                draw.text(
+                    (700, 200),
+                    text,
+                    (255, 255, 255),
+                    font=font,
+                    anchor="mm",
+                )
+            
+            return True, background
+        else:
+            return False, None

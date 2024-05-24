@@ -11,7 +11,7 @@ from core.database import (
     get_data,
     get_inventory,
 )
-from core.utils import generate_markup, create_info_image
+from core.utils import generate_markup, create_info_image, egg_show
 from core.engine import (
     new_pet,
     save_pet_name,
@@ -108,8 +108,8 @@ async def show_interface(user_id, interface_name, input=False):
         and pet.status == "hatching"
         and interface_name not in ["start", "start_game", "hatching"]
     ):
-        text = await hatching_check_interface(user_id)
-        img = messages["interfaces"]["hatching_check"]["img"]
+        status, text = await hatching_check_interface(user_id)
+        status, img = await egg_show(user_id)
         markup = await generate_markup(
             messages["interfaces"]["hatching_check"]["buttons"]
         )
@@ -212,7 +212,7 @@ async def hatching_interface(user_id):
                 return False, messages["hatching_check"]["out_of_time"]
 
 
-async def hatching_check_interface(user_id):
+async def hatching_check_interface(user_id, for_img=False):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
@@ -242,15 +242,22 @@ async def hatching_check_interface(user_id):
                     .make_agree_with_number(remaining_seconds)
                     .word
                 )
-
-                text = messages["interfaces"]["hatching_check"]["text"].format(
-                    remaining_minutes,
-                    agreed_word_minutes,
-                    remaining_seconds,
-                    agreed_word_seconds,
-                )
+                if for_img:
+                    text = messages["interfaces"]["hatching_check"]["for_img"].format(
+                        remaining_minutes,
+                        'м.',
+                        remaining_seconds,
+                        'с.',
+                    )
+                else:
+                    text = messages["interfaces"]["hatching_check"]["text"].format(
+                        remaining_minutes,
+                        agreed_word_minutes,
+                        remaining_seconds,
+                        agreed_word_seconds,
+                    )
                 return True, text
-            return False, messages["hatching_check"]["out_of_time"]
+            return False, messages['interfaces']["hatching_check"]["out_of_time"]
         else:
             return False, messages["errors"]["not_have_pet"]
 
@@ -314,7 +321,8 @@ async def start_play_interface(user_id, input):
                 if input in data["name"]:
                     status, text = await start_play(pet.id, input)
                     if status:
-                        return True, ""
+                        text = messages["interfaces"]['play']['text'].format(input)
+                        return True, text
                     else:
                         return False, text
             else:
