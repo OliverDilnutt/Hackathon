@@ -6,6 +6,7 @@ engine:
   pet_tasks_time: 300
   sadness_index: 1
   time_of_last_check: '2024-05-24T19:24:10.496658'
+
 food:
   collect_index: 2
   hunger_index: 1
@@ -97,7 +98,7 @@ play:
   zero_health_index: 1
 secret:
   owner_id: OWNER_ID
-  telegram_token: 5683713666:AAEqls37jArqSUBA7EaBfp9f9qxgsTxBQJU
+  telegram_token: TOKEN
 sleep:
   break_sleep_index: 5
   health_sleep_index: 1

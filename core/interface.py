@@ -11,6 +11,7 @@ from core.database import (
     get_data,
     get_inventory
 )
+
 from core.utils import generate_markup, create_info_image, egg_show, get_current_page, generate_paginated_markup, update_current_category, update_current_page, ranking
 from core.engine import (
     new_pet,

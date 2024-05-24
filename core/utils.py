@@ -185,9 +185,6 @@ async def ranking(user_id):
         return True, text
         
 
-        
-
-
 async def create_info_image(user_id):
     async with AsyncSessionLocal() as session:
         pet = await session.execute(
