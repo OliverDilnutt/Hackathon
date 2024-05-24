@@ -152,6 +152,38 @@ async def get_current_category(user_id):
         return None
 
 
+async def save_time_start_activity(pet_id):
+    async with AsyncSessionLocal() as session:
+        pet = await session.execute(
+            db.select(Pet).filter(Pet.id == pet_id)
+        )
+        pet = pet.scalar_one_or_none()
+        if pet:
+            data = await get_data(pet_id)
+            data['time_start_activity'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+            pet.data = str(data)
+        await session.commit()
+
+
+async def get_player_rank(user_id, sorted_pets):
+    for idx, pet in enumerate(sorted_pets, start=1):
+        if pet.user_id == user_id:
+            return idx
+
+
+async def ranking(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet))
+        pets = result.scalars().all()
+        sorted_pets = sorted(pets, key=lambda pet: (-pet.lvl, -pet.experience))
+        user_send_rank = await get_player_rank(user_id, sorted_pets)
+        text = messages['interfaces']['rank']['text'].format(user_send_rank) 
+        for pet in sorted_pets:
+            user = await bot.get_chat(pet.user_id)
+            text += messages['interfaces']['rank']['user_text'].format(user.username, pet.lvl, pet.experience)
+        
+        return True, text
+        
 
 async def create_info_image(user_id):
     async with AsyncSessionLocal() as session:

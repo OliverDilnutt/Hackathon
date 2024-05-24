@@ -529,6 +529,28 @@ async def final_hatching_after_restart(id):
             )
 
 
+async def lvl_up(id):
+    time_start_activity = (await get_data(id))['time_start_activity']
+    if time_start_activity // config['lvl']['lvl_up_for_activity_by_time'] > 1:
+        async with AsyncSessionLocal() as session:
+            result = await session.execute(db.select(Pet).filter(Pet.id == id))
+            pet = result.scalar_one_or_none()
+            if pet.state == 'playing':
+                pet.experience += config['lvl']['playing']
+                
+            elif pet.state =='sleeping':
+                pet.experience += config['lvl']['sleeping']
+                
+            elif pet.state == 'collecting':
+                pet.experience += config['lvl']['collecting']
+            
+            experience_for_up_lvl = config['lvl']['experience'] * (1.1)**pet.lvl
+            if pet.experience > experience_for_up_lvl:
+                pet.lvl += 1
+                pet.experience = 0
+
+            await session.commit()
+
 # Automatic updates
 async def edit_pet():
     async with AsyncSessionLocal() as session:
