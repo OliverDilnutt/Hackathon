@@ -91,7 +91,7 @@ play:
   zero_health_index: 1
 secret:
   owner_id: OWNER_ID
-  telegram_token: 5683713666:AAH8GlMmZs_gbRuZ4UV7iA8_2vny2hfldxo
+  telegram_token: TOKEN
 sleep:
   break_sleep_index: 5
   health_sleep_index: 1
