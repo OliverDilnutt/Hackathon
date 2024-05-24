@@ -48,7 +48,7 @@ interfaces:
     
 
   input_name:
-    trigger: "Дать имя"
+    trigger: "📝 | Дать имя"
     img: "None"
     text: "📝 | Введите имя"
     input: True
@@ -67,7 +67,7 @@ interfaces:
       - "Главное меню"
 
   random_pet_name:
-    trigger: "Случайное имя"
+    trigger: "🎲 | Случайное имя"
     img: "None"
     text: "✅ | Имя: {0}"
     input: False
