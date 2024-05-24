@@ -5,7 +5,7 @@ engine:
   hatching_timer: 600
   pet_tasks_time: 300
   sadness_index: 1
-  time_of_last_check: '2024-05-24T04:22:11.680861'
+  time_of_last_check: '2024-05-24T14:18:26.535097'
 food:
   collect_index: 2
   hunger_index: 1
@@ -57,6 +57,24 @@ games:
     2:
       name: Тест2
       play_index: 2
+    3:
+      name: Тест3
+      play_index: 1
+    4:
+      name: Тест4
+      play_index: 2
+    5:
+      name: Тест5
+      play_index: 1
+    6:
+      name: Тест6
+      play_index: 2
+    7:
+      name: Тест7
+      play_index: 1
+    8:
+      name: Тест8
+      play_index: 2
 imgs:
   font_path: fonts/Aqum.ttf
   font_size_eggs: 50
@@ -73,7 +91,7 @@ play:
   zero_health_index: 1
 secret:
   owner_id: OWNER_ID
-  telegram_token: 7194321199:AAEU5khI7cPWhiqITs5XK4CvI0S3V46hsr0
+  telegram_token: 5683713666:AAH8GlMmZs_gbRuZ4UV7iA8_2vny2hfldxo
 sleep:
   break_sleep_index: 5
   health_sleep_index: 1

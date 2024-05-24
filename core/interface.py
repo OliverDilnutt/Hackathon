@@ -9,9 +9,9 @@ from core.database import (
     new_user,
     db,
     get_data,
-    get_inventory,
+    get_inventory
 )
-from core.utils import generate_markup, create_info_image, egg_show
+from core.utils import generate_markup, create_info_image, egg_show, get_current_page, generate_paginated_markup, update_current_category, update_current_page
 from core.engine import (
     new_pet,
     save_pet_name,
@@ -127,10 +127,14 @@ async def parse_actions(user_id, buttons_in_row=None):
 
 
 async def parse_games(user_id, buttons_in_row=None):
+    await update_current_category(user_id, 'games')
     games = config["games"]["list"]
     game_names_list = [games[game]["name"] for game in games]
-    game_names_list.append(messages["buttons"]["actions"])
-    markup = await generate_markup(game_names_list)
+    
+    items_per_page = messages['buttons']['items_per_page']
+    current_page = await get_current_page(user_id)
+
+    markup = await generate_paginated_markup(game_names_list, current_page, items_per_page, buttons_in_row)
     return markup
 
 
@@ -139,18 +143,20 @@ async def parse_food(user_id, buttons_in_row=None):
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
     if pet:
+        await update_current_category(user_id, 'food')
         foods = await get_inventory(pet.id)
         foods = [
             f"{value['name']} [{value['amount']}]"
             for key, value in foods.items()
-            if value["class"] == "food"
+            if value["class"] == "food" and value["amount"] > 0
         ]
-        foods.append(messages["buttons"]["actions"])
-        if buttons_in_row is not None:
-            markup = await generate_markup(foods, buttons_in_row=buttons_in_row)
-        else:
-            markup = await generate_markup(foods)
+
+        items_per_page = messages['buttons']['items_per_page']
+        current_page = await get_current_page(user_id)
+
+        markup = await generate_paginated_markup(foods, current_page, items_per_page, buttons_in_row)
         return markup
+        
     else:
         return await generate_markup(messages["buttons"]["main_menu"])
 
@@ -169,29 +175,30 @@ async def parse_food_amount(user_id, buttons_in_row=None):
 
         button_text = messages["interfaces"]["select_amount_food"]["buttons_style"]
 
-        buttons.append(button_text.format(1, (pet.satiety + feed_index)))
-        if food_amount > 1:
+        buttons.append(button_text.format(1, min(pet.satiety + feed_index, 100)))
+        if food_amount > 2 and pet.satiety + feed_index < 100:
             buttons.append(
                 button_text.format(
                     round((max_amount + 1) / 2),
                     (
-                        pet.satiety
+                        min(pet.satiety
                         + (
                             round((max_amount + 1) / 2)
                             * feed_index
-                        )
+                        ), 100)
                     ),
                 )
             )
-            buttons.append(
-                button_text.format(max_amount, min(pet.satiety + max_amount*feed_index, 100))
-            )
+            if min(pet.satiety + (round((max_amount + 1) / 2) * feed_index), 100) < 100:
+                buttons.append(
+                    button_text.format(max_amount, min(pet.satiety + max_amount*feed_index, 100))
+                )
 
-        buttons.append(messages["buttons"]["actions"])
+        actions = [messages["buttons"]["actions"]]
         if buttons_in_row is not None:
-            markup = await generate_markup(buttons, buttons_in_row=buttons_in_row)
+            markup = await generate_markup(buttons, buttons_in_row=buttons_in_row, special_buttons=actions, special_buttons_in_row=1)
         else:
-            markup = await generate_markup(buttons)
+            markup = await generate_markup(buttons, special_buttons=actions, special_buttons_in_row=1)
         return markup
     else:
         return await generate_markup(messages["buttons"]["main_menu"])

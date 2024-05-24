@@ -41,6 +41,9 @@ class States(Base):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
     state = db.Column(db.String, nullable=True)
+    current_page = db.Column(db.Integer, default=1)
+    current_category = db.Column(db.String, nullable=True)
+    msg_for_delete = db.Column(db.Integer, nullable=True)
 
 
 class Stats(Base):
