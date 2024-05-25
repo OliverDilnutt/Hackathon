@@ -192,7 +192,10 @@ async def health(id, auto=True, index=None):
             if auto:
                 pet.health = max(pet.health - config["engine"]["health_index"], 0)
             else:
-                pet.health = max(pet.health - index, 0)
+                if index > 0:
+                    pet.health = min(pet.health + index, 100)
+                else:
+                    pet.health = max(pet.health - index, 0)
             await session.commit()
 
 
@@ -456,8 +459,8 @@ async def collect_food(id):
 
             food_list = []
             chances = []
-            food_list = {key: value for key, value in inventory_items.items() if value['class'] == 'food'}
-            for food_name, food_data in food_list.items():
+            all_food_list = {key: value for key, value in inventory_items.items() if value['class'] == 'food'}
+            for food_name, food_data in all_food_list.items():
                 if food_data["can_find"]:
                     food_list.append(food_name)
                     chances.append(food_data["chance"])
@@ -564,12 +567,13 @@ async def travel(id):
                     time_start = datetime.strptime(data['time_start_activity'], "%Y-%m-%d %H:%M:%S.%f")
                     if datetime.now() - time_start > timedelta(minutes=duration):
                         pet.state = 'nothing'
-                        await user_send(pet.user_id, messages["interfaces"]["travel"]["finally"])
+                        await user_send(pet.user_id, messages["interfaces"]["journey"]["finally"])
                         status, events_text = await finally_journey(pet.user_id)
+                        await session.commit()
                         if status:
                             await user_send(pet.user_id, events_text)
-                    else:
-                        location = data["journey_location"]
+                            return
+                    location = data["journey_location"]
                     
                     if random.random() < config['journey']['event_in_journey']:
                         if pet.health > config['journey']['min_health']:
@@ -595,14 +599,13 @@ async def travel(id):
                         
                         # Если есть найденные предметы, добавляем их в инвентарь
                         if "found" in changes:
-                            inventory = await get_inventory(id)
-                            for name, amount in changes["found"]:
-                                inventory.append({
-                                    "name": name,
-                                    "amount": amount,
-                                    "class": inventory_items[name]['class'],
-                                })
-                            pet.inventory = str(inventory)
+                            for item in changes["found"]:
+                                for name, amount in item.items():
+                                    pet.inventory.append({
+                                        "name": name,
+                                        "amount": amount,
+                                        "class": inventory_items[name]['class'],
+                                    })
                         pet.data = str(data)
 
                         await session.commit()

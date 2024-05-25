@@ -6,7 +6,7 @@ engine:
   health_index: 0
   pet_tasks_time: 10
   sadness_index: 1
-  time_of_last_check: '2024-05-25T05:07:35.699711'
+  time_of_last_check: '2024-05-26T02:14:52.018294'
 food:
   collect_index: 2
   hunger_index: 1

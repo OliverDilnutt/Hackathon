@@ -4,8 +4,9 @@ import textwrap
 import ast
 from sqlalchemy import func
 from datetime import datetime, timedelta
-import asyncio
+import random
 from PIL import Image, ImageFont, ImageDraw, ImageOps
+import os
 
 from core import config, logging, messages, bot
 from core.database import States, AsyncSessionLocal, Pet, db, get_data, get_inventory
@@ -286,5 +287,26 @@ async def egg_show(user_id):
                 )
             
             return True, background
+        else:
+            return False, None
+
+
+
+async def journey_images(user_id):
+    async with AsyncSessionLocal() as session:
+        pet = await session.execute(
+            db.select(Pet).filter(Pet.user_id == user_id and Pet.status == "live")
+        )
+        pet = pet.scalar_one_or_none()
+        if pet:
+            data = await get_data(pet.id)
+            background_files = os.listdir(messages['events']['journey'][data['journey_location']]['img'])
+            background_file = background_files[random.randint(0, len(background_files) - 1)]
+            background_path = os.path.join(messages['events']['journey'][data['journey_location']]['img'], background_file)
+            background = Image.open(background_path, 'r')
+            background.save('test1.png')
+            print(2)
+            return True, background
+
         else:
             return False, None

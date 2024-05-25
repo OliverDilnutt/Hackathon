@@ -14,7 +14,7 @@ from core.database import (
     get_inventory
 )
 
-from core.utils import generate_markup, create_info_image, egg_show, get_current_page, generate_paginated_markup, update_current_category, update_current_page, get_player_rank, user_send
+from core.utils import generate_markup, create_info_image, egg_show, get_current_page, generate_paginated_markup, update_current_category, update_current_page, get_player_rank, user_send, journey_images
 from core.engine import (
     new_pet,
     save_pet_name,
@@ -244,7 +244,7 @@ async def hatching_interface(user_id):
                 else:
                     return False, text
             else:
-                return False, messages["hatching_check"]["out_of_time"]
+                return False, messages['interfaces']["hatching_check"]["out_of_time"]
 
 
 async def hatching_check_interface(user_id, for_img=False):
