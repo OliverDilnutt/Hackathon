@@ -3,9 +3,10 @@ collect_food:
   max_collect_food: 50
 engine:
   hatching_timer: 6
+  health_index: 0
   pet_tasks_time: 10
   sadness_index: 1
-  time_of_last_check: '2024-05-25T04:16:55.371677'
+  time_of_last_check: '2024-05-25T05:07:35.699711'
 food:
   collect_index: 2
   hunger_index: 1
@@ -48,6 +49,8 @@ imgs:
 journey:
   event_in_journey: 0.5
   min_health: 15
+  replace_to: '##'
+  words_to_replace: 3
 level:
   collecting: 10
   experience: 100

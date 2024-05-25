@@ -1,21 +1,8 @@
-import re
-
 from core import bot, messages, logging
 from core.interface import check_triggers, show_interface, parse_food, parse_games
 from core.utils import generate_markup, remove_patterns, get_current_page, update_current_page, get_total_items, get_current_category, get_message_for_delete, set_message_for_delete
 from core.database import set_state, AsyncSessionLocal, States, db
 from core.engine import break_collect_food
-
-
-# @bot.message_handler(commands=["start"])
-# async def start_handler(message):
-#     markup = await generate_markup(messages["bot"]["start"]["buttons"])
-#     # status, text = await new_user(message)
-#     # if status:
-#     await bot.send_message(message.chat.id, messages["bot"]["start"]["text"], reply_markup=markup)
-
-#     # else:
-#         # await bot.send_message(message.chat.id, text)
 
 
 @bot.message_handler(commands=["help"])

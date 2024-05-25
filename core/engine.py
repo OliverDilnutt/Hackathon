@@ -182,7 +182,7 @@ async def sleep_down(id, auto=True, index=None):
             await session.commit()
 
 
-async def health(id, index=None, auto=True):
+async def health(id, auto=True, index=None):
     async with AsyncSessionLocal() as session:
         result = await session.execute(
             db.select(Pet).filter(Pet.id == id, Pet.status == "live")
@@ -573,7 +573,7 @@ async def travel(id):
                     
                     if random.random() < config['journey']['event_in_journey']:
                         if pet.health > config['journey']['min_health']:
-                            event = random.choice(messages['events']['journey'][location]['events'])
+                            event = random.choice(list(messages['events']['journey'][location]['events'].values()))
                         else:
                             good_events = {key: value for key, value in messages['events']['journey'][location]['events'].items() if value['class'] == 'good'}
                             event = random.choice(good_events)
@@ -595,26 +595,18 @@ async def travel(id):
                         
                         # Если есть найденные предметы, добавляем их в инвентарь
                         if "found" in changes:
-                            inventory = get_inventory(id)
+                            inventory = await get_inventory(id)
                             for name, amount in changes["found"]:
                                 inventory.append({
                                     "name": name,
                                     "amount": amount,
                                     "class": inventory_items[name]['class'],
                                 })
+                            pet.inventory = str(inventory)
                         pet.data = str(data)
-                        pet.inventory = str(inventory)
 
                         await session.commit()
-
-                    return True, event if random.random() < 0.5 else None
-                else:
-                    return False, messages["pet"]["busy"]
-            else:
-                return False, messages["errors"]["dead"]
-        else:
-            return False, messages["errors"]["not_have_pet"]
-
+                        
 
 async def break_journey(id):
     from core.interface import finally_journey

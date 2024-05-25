@@ -1,5 +1,7 @@
 from datetime import datetime
 from math import ceil
+import random
+import re
 
 from core import config, messages, morph, bot, inventory_items
 from core.database import (
@@ -529,15 +531,24 @@ async def ranking(user_id):
         return True, text
 
 
+async def about_locations_interface(user_id):
+    text = ''
+    
+    for location_name, location_data in messages['events']['journey'].items():
+        text += messages['interfaces']['journey']['location_text'].format(f"{location_data['name']} — {location_data['description']}")
+        
+    return True, text
+
+
 async def select_location_interface(user_id, input):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
         if pet:
             data = await get_data(pet.id)
-            for location, data in messages['events']['journey'].items():
-                if data['name'] == input:
-                    data['journey_location'] = location
+            for location_name, location_data in messages['events']['journey'].items():
+                if location_data['name'] == input:
+                    data['journey_location'] = location_name
             pet.data = str(data)
             await session.commit()
             return True, ""
@@ -554,18 +565,18 @@ async def finally_journey(user_id):
             events = data.get('events')
             if events is None:
                 return True, messages["errors"]["not_have_events"]
-            text = messages["interfaces"]["back_home"]["event_text"]
+            text = ''
             for idx, event in enumerate(events):
                 changes_text = ''
                 changes = event['changes']
                 if "health" in changes:
-                    changes_text += f"❤️ {changes['health']}\n"
+                    changes_text += f"❤️ {changes['health']:+}\n"
                 if "satiety" in changes:
-                    changes_text += f"🍎 {changes['satiety']}\n"
+                    changes_text += f"🍎 {changes['satiety']:+}\n"
                 if "happiness" in changes:
-                    changes_text += f"😃 {changes['happiness']}\n"
+                    changes_text += f"😃 {changes['happiness']:+}\n"
                 if "sleep" in changes:
-                    changes_text += f"🌙 {changes['sleep']}\n"
+                    changes_text += f"🌙 {changes['sleep']:+}\n"
                 
                 text += messages["interfaces"]["back_home"]["event_text"].format(idx + 1, f"{event['description']}\n{changes_text}")
             return True, text
@@ -573,7 +584,35 @@ async def finally_journey(user_id):
             return False, messages["errors"]["not_have_pet"]
         
         
-        
+async def get_journey_info(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            data = await get_data(pet.id)
+            events = data.get('events')
+            if events is None or events == []:
+                return True, messages["errors"]["not_have_events"]
+            text = events[-1]['description']
+            
+            words = re.findall(r'\w+', text)
+            
+            replaced_words = words[:]
+            
+            # Заменить случайные слова на ##
+            words_to_replace = len(words) // config['journey']['words_to_replace']
+            
+            # Заменить случайные слова
+            indices_to_replace = random.sample(range(len(words)), words_to_replace)
+            for i in indices_to_replace:
+                replaced_words[i] = config['journey']['replace_to']
+            
+            # Собрать текст из замененных слов
+            text = ' '.join(replaced_words)
+            
+            return True, text
+        else:
+            return False, messages["errors"]["not_have_pet"]
         
         
 async def start_journey_interface(user_id, input):
@@ -584,6 +623,7 @@ async def start_journey_interface(user_id, input):
             data = await get_data(pet.id)
             if input.isdigit():
                 data['journey_duration'] = int(input)
+                data['events'] = []
                 pet.data = str(data)
                 await session.commit()
                 status, text = await start_journey(pet.id)

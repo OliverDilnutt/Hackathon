@@ -1,6 +1,6 @@
 import telebot
 import re
-import yaml
+import textwrap
 import ast
 from sqlalchemy import func
 from datetime import datetime, timedelta
@@ -169,6 +169,20 @@ async def get_player_rank(user_id, sorted_pets):
     for idx, pet in enumerate(sorted_pets, start=1):
         if pet.user_id == user_id:
             return idx
+        
+        
+async def split_text(text, max_length):
+    paragraphs = text.split('\n')
+    split_paragraphs = []
+
+    for paragraph in paragraphs:
+        if len(paragraph) <= max_length:
+            split_paragraphs.append(paragraph)
+        else:
+            wrapped_lines = textwrap.wrap(paragraph, width=max_length, replace_whitespace=False)
+            split_paragraphs.extend(wrapped_lines)
+
+    return split_paragraphs
 
 
 async def create_info_image(user_id):
