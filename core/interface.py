@@ -1,7 +1,7 @@
 from datetime import datetime
 from math import ceil
 
-from core import config, messages, morph, bot
+from core import config, messages, morph, bot, inventory_items
 from core.database import (
     AsyncSessionLocal,
     Pet,
@@ -12,7 +12,7 @@ from core.database import (
     get_inventory
 )
 
-from core.utils import generate_markup, create_info_image, egg_show, get_current_page, generate_paginated_markup, update_current_category, update_current_page, ranking
+from core.utils import generate_markup, create_info_image, egg_show, get_current_page, generate_paginated_markup, update_current_category, update_current_page, get_player_rank, user_send
 from core.engine import (
     new_pet,
     save_pet_name,
@@ -26,6 +26,7 @@ from core.engine import (
     start_collect_food,
     break_collect_food,
     hatching,
+    start_journey
 )
 
 
@@ -107,7 +108,7 @@ async def show_interface(user_id, interface_name, input=False):
     elif (
         pet
         and pet.status == "hatching"
-        and interface_name not in ["start", "start_game", "hatching"]
+        and interface_name not in ["start", "start_game", "hatching", "user_info"]
     ):
         status, text = await hatching_check_interface(user_id)
         status, img = await egg_show(user_id)
@@ -218,6 +219,17 @@ async def parse_food_amount(user_id, buttons_in_row=None):
         return await generate_markup(messages["buttons"]["main_menu"])
 
 
+async def parse_locations(user_id, buttons_in_row=None):
+    await update_current_category(user_id, 'locations')
+    location_names = [messages['events']['journey'][location]['name'] for location in messages['events']['journey']]
+    
+    items_per_page = messages['buttons']['items_per_page']
+    current_page = await get_current_page(user_id)
+
+    markup = await generate_paginated_markup(location_names, current_page, items_per_page, buttons_in_row)
+    return markup
+
+
 async def hatching_interface(user_id):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
@@ -288,22 +300,25 @@ async def format_pet_info(user_id):
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
         if pet:
-            text = messages["interfaces"]["main_menu"]["text"]
-            age = await get_age(pet.id)
-            age_time_name = messages["time_names"][age[1]]
-            agreed_word = morph.parse(age_time_name)[0]
-            agreed_word = agreed_word.make_agree_with_number(age[0]).word
-            text = text.format(
-                pet.name,
-                messages["statuses"][pet.status],
-                messages["states"][pet.state],
-                f"{age[0]} {agreed_word}",
-                pet.health,
-                pet.satiety,
-                pet.happiness,
-                pet.sleep,
-            )
-            return True, text
+            if pet.status != "hatching":
+                text = messages["interfaces"]["main_menu"]["text"]
+                age = await get_age(pet.id)
+                age_time_name = messages["time_names"][age[1]]
+                agreed_word = morph.parse(age_time_name)[0]
+                agreed_word = agreed_word.make_agree_with_number(age[0]).word
+                text = text.format(
+                    pet.name,
+                    messages["statuses"][pet.status],
+                    messages["states"][pet.state],
+                    f"{age[0]} {agreed_word}",
+                    pet.health,
+                    pet.satiety,
+                    pet.happiness,
+                    pet.sleep,
+                )
+                return True, text
+            else:
+                return False, messages["errors"]["not_hatch"]
         else:
             return False, messages["errors"]["not_have_pet"]
 
@@ -368,7 +383,8 @@ async def save_selected_food(user_id, input):
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
         if pet:
-            for name, data in config["food"]["list"].items():
+            food_list = {key: value for key, value in inventory_items.items() if value['class'] == 'food'}
+            for name, data in food_list.items():
                 if input in data["name"]:
                     data = await get_data(pet.id)
                     data["selected_food"] = name
@@ -475,20 +491,131 @@ async def user_info(user_id):
         if pet:
             user = await bot.get_chat(user_id)
 
-            inventory = await get_inventory(user.id)
-            items_amount = 0
-            for item_name, item_data in inventory.items():
-                items_amount += item_data["amount"]
-            
-            age = await get_age(pet.id)
-            age_time_name = messages["time_names"][age[1]]
-            agreed_word = morph.parse(age_time_name)[0]
-            agreed_word = agreed_word.make_agree_with_number(age[0]).word
-            age = f"{age[0]} {agreed_word}"
-            
-            text = messages["interfaces"]["user_info"]["text"].format(
-                user.username, user.id, pet.name, messages["statuses"][pet.status], pet.lvl, pet.experience, age, items_amount
-            )
+            if pet.status != "hatching":
+                inventory = await get_inventory(pet.id)
+                items_amount = 0
+                for item_name, item_data in inventory.items():
+                    items_amount += item_data["amount"]
+                
+                age = await get_age(pet.id)
+                age_time_name = messages["time_names"][age[1]]
+                agreed_word = morph.parse(age_time_name)[0]
+                agreed_word = agreed_word.make_agree_with_number(age[0]).word
+                age = f"{age[0]} {agreed_word}"
+
+                text = messages["interfaces"]["user_info"]["text"].format(
+                    user.username, user.id, pet.name, messages["statuses"][pet.status], pet.level, pet.experience, age, items_amount
+                )
+            else:
+                text = messages["interfaces"]["user_info"]["not_hatching_text"].format(
+                    user.username, user.id, messages["statuses"][pet.status]
+                )
             return True, text
         else:
-            return False, messages["errors"]["not_have_user"]
+            return False, messages["errors"]["not_have_pet"]
+        
+        
+async def ranking(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet))
+        pets = result.scalars().all()
+        sorted_pets = sorted(pets, key=lambda pet: (-pet.level, -pet.experience))
+        user_send_rank = await get_player_rank(user_id, sorted_pets)
+        text = messages['interfaces']['rank']['text'].format(user_send_rank) 
+        for pet in sorted_pets:
+            user = await bot.get_chat(pet.user_id)
+            text += messages['interfaces']['rank']['user_text'].format(user.username, pet.level, pet.experience)
+        
+        return True, text
+
+
+async def select_location_interface(user_id, input):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            data = await get_data(pet.id)
+            for location, data in messages['events']['journey'].items():
+                if data['name'] == input:
+                    data['journey_location'] = location
+            pet.data = str(data)
+            await session.commit()
+            return True, ""
+        else:
+            return False, messages["errors"]["not_have_pet"]        
+        
+        
+async def finally_journey(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            data = await get_data(pet.id)
+            events = data.get('events')
+            if events is None:
+                return True, messages["errors"]["not_have_events"]
+            text = messages["interfaces"]["back_home"]["event_text"]
+            for idx, event in enumerate(events):
+                changes_text = ''
+                changes = event['changes']
+                if "health" in changes:
+                    changes_text += f"❤️ {changes['health']}\n"
+                if "satiety" in changes:
+                    changes_text += f"🍎 {changes['satiety']}\n"
+                if "happiness" in changes:
+                    changes_text += f"😃 {changes['happiness']}\n"
+                if "sleep" in changes:
+                    changes_text += f"🌙 {changes['sleep']}\n"
+                
+                text += messages["interfaces"]["back_home"]["event_text"].format(idx + 1, f"{event['description']}\n{changes_text}")
+            return True, text
+        else:
+            return False, messages["errors"]["not_have_pet"]
+        
+        
+        
+        
+        
+async def start_journey_interface(user_id, input):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            data = await get_data(pet.id)
+            if input.isdigit():
+                data['journey_duration'] = int(input)
+                pet.data = str(data)
+                await session.commit()
+                status, text = await start_journey(pet.id)
+                if status:
+                    return True, ""
+                else:
+                    return False, text
+            else:
+                return False, messages["errors"]["not_int"]
+        else:
+            return False, messages["errors"]["not_have_pet"]
+        
+        
+async def back_home_interface(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            if pet.status == 'live':
+                if pet.state == 'traveling':
+                    pet.state = 'nothing'
+                    await session.commit()
+                    await user_send(user_id, messages["interfaces"]["back_home"]["text"])
+                    status, text = await finally_journey(user_id)
+                    if status:
+                        return True, text
+                    else:
+                        return False, text
+                else:
+                    return False, messages["errors"]["not_traveling"]
+            else:
+                return False, messages["errors"]["dead"]
+        else:
+            return False, messages["errors"]["not_have_pet"]
+    

@@ -1,0 +1,54 @@
+algae:
+  name: 🌿 Водоросли
+  chance: 0.3
+  feed_index: 3
+  can_find: true
+  class: 'food'
+apple:
+  name: 🍎 Яблоко
+  chance: 0.3
+  feed_index: 3
+  can_find: true
+  class: 'food'
+berry:
+  name: 🍇 Ягоды
+  chance: 0.5
+  feed_index: 1
+  can_find: true
+  class: 'food'
+bread:
+  name: 🍞 Хлеб
+  chance: 0.2
+  feed_index: 4
+  can_find: true
+  class: 'food'
+carrot:
+  name: 🥕 Морковь
+  chance: 0.5
+  feed_index: 2
+  can_find: true
+  class: 'food'
+fish:
+  name: 🐟 Мелкая рыба
+  feed_index: 9
+  can_find: false
+  class: 'food'
+lettuce:
+  name: 🥬 Салат
+  chance: 0.2
+  feed_index: 3
+  can_find: true
+  class: 'food'
+turtle_food:
+  name: 🥫 Корм для черепашек
+  feed_index: 10
+  can_find: false
+  class: 'food'
+precious_stone:
+  name: Драгоценный камень
+  can_find: true
+  class: 'jewelry'
+pearl:
+  name: Жемчужина
+  can_find: true
+  class: 'jewelry'

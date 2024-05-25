@@ -1,53 +1,14 @@
 collect_food:
-  chance: 1.0
+  chance: 0.3
   max_collect_food: 50
 engine:
-  hatching_timer: 600
-  pet_tasks_time: 300
+  hatching_timer: 6
+  pet_tasks_time: 10
   sadness_index: 1
-  time_of_last_check: '2024-05-24T19:24:10.496658'
+  time_of_last_check: '2024-05-25T04:16:55.371677'
 food:
   collect_index: 2
   hunger_index: 1
-  list:
-    algae:
-      can_find: true
-      chance: 0.3
-      feed_index: 3
-      name: 🌿 Водоросли
-    apple:
-      can_find: true
-      chance: 0.3
-      feed_index: 3
-      name: 🍎 Яблоко
-    berry:
-      can_find: true
-      chance: 0.5
-      feed_index: 1
-      name: 🍇 Ягоды
-    bread:
-      can_find: true
-      chance: 0.2
-      feed_index: 4
-      name: 🍞 Хлеб
-    carrot:
-      can_find: true
-      chance: 0.5
-      feed_index: 2
-      name: 🥕 Морковь
-    fish:
-      can_find: false
-      feed_index: 9
-      name: 🐟 Мелкая рыба
-    lettuce:
-      can_find: true
-      chance: 0.2
-      feed_index: 3
-      name: 🥬 Салат
-    turtle_food:
-      can_find: false
-      feed_index: 10
-      name: 🥫 Корм для черепашек
   zero_health_index: 10
 games:
   list:
@@ -84,12 +45,17 @@ imgs:
   path_panels_folder: imgs/panels/
   path_pets_folder: imgs/pets/
   path_rooms_folder: imgs/rooms/
-lvl:
+journey:
+  event_in_journey: 0.5
+  min_health: 15
+level:
   collecting: 10
   experience: 100
-  lvl_up_for_activity_by_time: 1800
+  level_up_for_activity_by_time: 1800
+  max_education_buff: 40
   playing: 15
   sleeping: 5
+  traveling: 20
 play:
   break_play_index: 5
   play_again_index: 15
@@ -97,7 +63,7 @@ play:
   zero_health_index: 1
 secret:
   owner_id: OWNER_ID
-  telegram_token: TOKEN
+  telegram_token: 5683713666:AAEqls37jArqSUBA7EaBfp9f9qxgsTxBQJU
 sleep:
   break_sleep_index: 5
   health_sleep_index: 1

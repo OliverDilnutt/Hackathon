@@ -171,20 +171,6 @@ async def get_player_rank(user_id, sorted_pets):
             return idx
 
 
-async def ranking(user_id):
-    async with AsyncSessionLocal() as session:
-        result = await session.execute(db.select(Pet))
-        pets = result.scalars().all()
-        sorted_pets = sorted(pets, key=lambda pet: (-pet.lvl, -pet.experience))
-        user_send_rank = await get_player_rank(user_id, sorted_pets)
-        text = messages['interfaces']['rank']['text'].format(user_send_rank) 
-        for pet in sorted_pets:
-            user = await bot.get_chat(pet.user_id)
-            text += messages['interfaces']['rank']['user_text'].format(user.username, pet.lvl, pet.experience)
-        
-        return True, text
-        
-
 async def create_info_image(user_id):
     async with AsyncSessionLocal() as session:
         pet = await session.execute(
