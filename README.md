@@ -25,7 +25,7 @@
 ### **Настройка** 
 1. Склонируйте этот репозиторий  
 ``` 
-git clone https://t.me/tamagochi_turtle_bot.git 
+git clone https://github.com/OliverDilnutt/Hackathon.git
 ``` 
 2. Создать виртуальное окружение
 ```
