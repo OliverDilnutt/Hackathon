@@ -85,7 +85,6 @@ except yaml.YAMLError as e:
     exit()
 
 
-
 morph = pymorphy3.MorphAnalyzer(lang="ru")
 
 from core.database import Base, engine_db

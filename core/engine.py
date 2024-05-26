@@ -27,15 +27,17 @@ async def new_pet(user_id):
             random_pet = files_pets[random.randint(0, len(files_pets) - 1)]
             random_room = files_rooms[random.randint(0, len(files_rooms) - 1)]
             random_panel = files_panels[random.randint(0, len(files_panels) - 1)]
-            random_background = files_backgrounds[random.randint(0, len(files_backgrounds) - 1)]
+            random_background = files_backgrounds[
+                random.randint(0, len(files_backgrounds) - 1)
+            ]
             random_egg = files_eggs[random.randint(0, len(files_eggs) - 1)]
             data = await get_data(pet.id)
             data["pet_img"] = random_pet
             data["room_img"] = random_room
-            data['panel_img'] = random_panel
+            data["panel_img"] = random_panel
             data["background_img"] = random_background
             data["egg_img"] = random_egg
-            data['education'] = 0
+            data["education"] = 0
             pet.data = str(data)
             await session.commit()
             return True, ""
@@ -162,7 +164,9 @@ async def happiness(id, index=None, auto=True):
         pet = result.scalar_one_or_none()
         if pet and pet.state != "playing":
             if auto:
-                pet.happiness = min(pet.happiness + config["engine"]["happiness_index"], 100)
+                pet.happiness = min(
+                    pet.happiness + config["engine"]["happiness_index"], 100
+                )
             else:
                 pet.happiness = min(pet.happiness + index, 100)
             await session.commit()
@@ -174,7 +178,7 @@ async def sleep_down(id, auto=True, index=None):
             db.select(Pet).filter(Pet.id == id, Pet.status == "live")
         )
         pet = result.scalar_one_or_none()
-        if pet and pet.state not in ["sleeping", 'playing']:
+        if pet and pet.state not in ["sleeping", "playing"]:
             if auto:
                 pet.sleep = max(pet.sleep - config["sleep"]["sleep_down_index"], 0)
             else:
@@ -230,7 +234,9 @@ async def die(id):
             pet.status = "dead"
             pet.death = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
             await session.commit()
-            await user_send(pet.user_id, messages["interfaces"]["death"]["text"].format(pet.name))
+            await user_send(
+                pet.user_id, messages["interfaces"]["death"]["text"].format(pet.name)
+            )
 
 
 async def get_info(id):
@@ -317,10 +323,10 @@ async def play(id):
             else:
                 happiness = round(
                     (pet.happiness + config["play"]["play_index"])
-                    * (100 - config["games"][game]['sleep'])
+                    * (100 - config["games"][game]["sleep"])
                     // 100
                 )
-                await sleep_down(pet.id, config["games"][game]['sleep'], False)
+                await sleep_down(pet.id, config["games"][game]["sleep"], False)
                 pet.happiness = min(happiness, 100)
             if pet.happiness == 100:
                 pet.state = "nothing"
@@ -338,21 +344,28 @@ async def feed(id, food, amount):
             if pet.status == "live":
                 if pet.state == "nothing":
                     inventory = await get_inventory(pet.id)
-                    food_list = {key: value for key, value in inventory_items.items() if value['class'] == 'food'}
+                    food_list = {
+                        key: value
+                        for key, value in inventory_items.items()
+                        if value["class"] == "food"
+                    }
                     for key, value in food_list.items():
                         if key == food:
                             index = value["feed_index"]
                             if food in inventory:
                                 if amount.isdigit():
                                     amount = int(amount)
-                                    if inventory[food]['amount'] - amount >= 0:
-                                        inventory[food]['amount'] -= amount
+                                    if inventory[food]["amount"] - amount >= 0:
+                                        inventory[food]["amount"] -= amount
                                         pet.satiety = min(pet.satiety + index, 100)
                                         pet.inventory = str(inventory)
                                         await session.commit()
                                         return True, ""
                                     else:
-                                        return False, messages["errors"]["not_enough_food"]
+                                        return (
+                                            False,
+                                            messages["errors"]["not_enough_food"],
+                                        )
                                 else:
                                     return False, messages["errors"]["not_int"]
                             else:
@@ -380,7 +393,9 @@ async def start_sleep(id):
                         await session.commit()
                         return True, ""
                     else:
-                        return False, messages["interfaces"]["sleep"]["min_sleep"].format(pet.name)
+                        return False, messages["interfaces"]["sleep"][
+                            "min_sleep"
+                        ].format(pet.name)
                 else:
                     return False, messages["pet"]["busy"]
             else:
@@ -411,11 +426,16 @@ async def sleep(id, index=None, auto=True):
         pet = result.scalar_one_or_none()
         if auto:
             if pet and pet.state == "sleeping":
-                pet.health = min(pet.health + config["sleep"]["health_sleep_index"], 100)
+                pet.health = min(
+                    pet.health + config["sleep"]["health_sleep_index"], 100
+                )
                 pet.sleep = min(pet.sleep + config["sleep"]["sleep_index"], 100)
                 if pet.sleep == 100:
                     pet.state = "nothing"
-                    await user_send(pet.user_id, messages["interfaces"]["sleep"]["finally"].format(pet.name))
+                    await user_send(
+                        pet.user_id,
+                        messages["interfaces"]["sleep"]["finally"].format(pet.name),
+                    )
                 await session.commit()
         else:
             if index < 0:
@@ -462,7 +482,11 @@ async def collect_food(id):
 
             food_list = []
             chances = []
-            all_food_list = {key: value for key, value in inventory_items.items() if value['class'] == 'food'}
+            all_food_list = {
+                key: value
+                for key, value in inventory_items.items()
+                if value["class"] == "food"
+            }
             for food_name, food_data in all_food_list.items():
                 if food_data["can_find"]:
                     food_list.append(food_name)
@@ -556,33 +580,47 @@ async def start_journey(id):
 
 async def travel(id):
     from core.interface import finally_journey
-    
+
     async with AsyncSessionLocal() as session:
-        result = await session.execute(
-            db.select(Pet).filter(Pet.id == id)
-        )
+        result = await session.execute(db.select(Pet).filter(Pet.id == id))
         pet = result.scalar_one_or_none()
         if pet:
             if pet.status == "live":
                 if pet.state == "traveling":
                     data = await get_data(id)
-                    duration = data['journey_duration']
-                    time_start = datetime.strptime(data['time_start_activity'], "%Y-%m-%d %H:%M:%S.%f")
+                    duration = data["journey_duration"]
+                    time_start = datetime.strptime(
+                        data["time_start_activity"], "%Y-%m-%d %H:%M:%S.%f"
+                    )
                     if datetime.now() - time_start > timedelta(minutes=duration):
-                        pet.state = 'nothing'
-                        await user_send(pet.user_id, messages["interfaces"]["journey"]["finally"])
+                        pet.state = "nothing"
+                        await user_send(
+                            pet.user_id, messages["interfaces"]["journey"]["finally"]
+                        )
                         status, events_text = await finally_journey(pet.user_id)
                         await session.commit()
                         if status:
                             await user_send(pet.user_id, events_text)
                             return
                     location = data["journey_location"]
-                    
-                    if random.random() < config['journey']['event_in_journey']:
-                        if pet.health > config['journey']['min_health']:
-                            event = random.choice(list(messages['events']['journey'][location]['events'].values()))
+
+                    if random.random() < config["journey"]["event_in_journey"]:
+                        if pet.health > config["journey"]["min_health"]:
+                            event = random.choice(
+                                list(
+                                    messages["events"]["journey"][location][
+                                        "events"
+                                    ].values()
+                                )
+                            )
                         else:
-                            good_events = {key: value for key, value in messages['events']['journey'][location]['events'].items() if value['class'] == 'good'}
+                            good_events = {
+                                key: value
+                                for key, value in messages["events"]["journey"][
+                                    location
+                                ]["events"].items()
+                                if value["class"] == "good"
+                            }
                             event = random.choice(good_events)
                         changes = event["changes"]
 
@@ -596,43 +634,59 @@ async def travel(id):
                         if "sleep" in changes:
                             await sleep(id, changes["sleep"], False)
 
-                        if 'events' not in data:
-                            data['events'] = []
-                        data['events'].append(event)
-                        
+                        if "events" not in data:
+                            data["events"] = []
+                        data["events"].append(event)
+
                         # Если есть найденные предметы, добавляем их в инвентарь
                         if "found" in changes:
                             inventory = await get_inventory(pet.id)
                             for item in changes["found"]:
                                 for name, amount in item.items():
-                                        inventory[next((item_name for item_name, item_data in inventory_items.items() if name == item_data['name']), None)] = {
-                                            "name": name,
-                                            "amount": amount,
-                                            "class": next((item_data['class'] for item_name, item_data in inventory_items.items() if name == item_data['name']), None)
-                                        }
+                                    inventory[
+                                        next(
+                                            (
+                                                item_name
+                                                for item_name, item_data in inventory_items.items()
+                                                if name == item_data["name"]
+                                            ),
+                                            None,
+                                        )
+                                    ] = {
+                                        "name": name,
+                                        "amount": amount,
+                                        "class": next(
+                                            (
+                                                item_data["class"]
+                                                for item_name, item_data in inventory_items.items()
+                                                if name == item_data["name"]
+                                            ),
+                                            None,
+                                        ),
+                                    }
                             pet.inventory = str(inventory)
                         pet.data = str(data)
 
                         await session.commit()
-                        
+
 
 async def break_journey(id):
     from core.interface import finally_journey
-    
+
     async with AsyncSessionLocal() as session:
-        result = await session.execute(
-            db.select(Pet).filter(Pet.id == id)
-        )
+        result = await session.execute(db.select(Pet).filter(Pet.id == id))
         pet = result.scalar_one_or_none()
         if pet:
             if pet.status == "live":
                 if pet.state == "traveling":
-                    pet.stata = 'nothing'
-                    await user_send(pet.user_id, messages["interfaces"]["back_home"]["text"])
+                    pet.stata = "nothing"
+                    await user_send(
+                        pet.user_id, messages["interfaces"]["back_home"]["text"]
+                    )
                     status, events_text = await finally_journey(pet.user_id)
                     if status:
                         await user_send(pet.user_id, events_text)
-                else:   
+                else:
                     return False, messages["pet"]["not_traveling"]
             else:
                 return False, messages["errors"]["dead"]
@@ -660,9 +714,7 @@ async def check_indexes(id):
 
 async def final_hatching_after_restart(id):
     data = await get_data(id)
-    start_hatching = datetime.strptime(
-        data["start_hatching"], "%Y-%m-%d %H:%M:%S.%f"
-    )
+    start_hatching = datetime.strptime(data["start_hatching"], "%Y-%m-%d %H:%M:%S.%f")
     now = datetime.now()
     elapsed_seconds = (now - start_hatching).seconds
     hatching_timer = config["engine"]["hatching_timer"]
@@ -683,34 +735,36 @@ async def final_hatching_after_restart(id):
 
 
 async def level_up(id):
-    time_start_activity = (await get_data(id))['time_start_activity']
-    if time_start_activity // config['level']['level_up_for_activity_by_time'] > 1:
+    time_start_activity = (await get_data(id))["time_start_activity"]
+    if time_start_activity // config["level"]["level_up_for_activity_by_time"] > 1:
         async with AsyncSessionLocal() as session:
             result = await session.execute(db.select(Pet).filter(Pet.id == id))
             pet = result.scalar_one_or_none()
-            if pet.state == 'playing':
-                pet.experience += config['level']['playing']
-                
-            elif pet.state =='sleeping':
-                pet.experience += config['level']['sleeping']
-                
-            elif pet.state == 'collecting':
-                pet.experience += config['level']['collecting']
-            
-            elif pet.state == 'traveling':
-                pet.experience += config['level']['traveling']
-            
-            experience_for_up_level = config['level']['experience'] * (1.1)**pet.level
+            if pet.state == "playing":
+                pet.experience += config["level"]["playing"]
+
+            elif pet.state == "sleeping":
+                pet.experience += config["level"]["sleeping"]
+
+            elif pet.state == "collecting":
+                pet.experience += config["level"]["collecting"]
+
+            elif pet.state == "traveling":
+                pet.experience += config["level"]["traveling"]
+
+            experience_for_up_level = config["level"]["experience"] * (1.1) ** pet.level
             if pet.experience > experience_for_up_level:
                 pet.level += 1
                 pet.experience = 0
-            
+
             async with AsyncSessionLocal() as session:
                 result = await session.execute(db.select(Pet).filter(Pet.id == id))
-                pet = result.scalar_one_or_none() 
+                pet = result.scalar_one_or_none()
                 data = get_data(id)
-                education_buff = data['education'] // 10
-                pet.experience += min(education_buff, config['level']['max_education_buff'])
+                education_buff = data["education"] // 10
+                pet.experience += min(
+                    education_buff, config["level"]["max_education_buff"]
+                )
 
             await session.commit()
 
@@ -723,20 +777,50 @@ async def notifications(id):
         pet = result.scalar_one_or_none()
         if pet:
             data = await get_data(id)
-            last_notification = data.get('last_notification')
-            if last_notification == None or datetime.now() - datetime.strptime(last_notification, "%Y-%m-%d %H:%M:%S.%f") > timedelta(minutes=config['engine']['notification_time']):
-                if pet.health < config['engine']['health_min_value']:
-                    data['last_notification'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                    await user_send(pet.user_id, messages['notifications']['min_value_health'].format(config['engine']['health_min_value']))
-                if pet.satiety < config['food']['min_value']:
-                    data['last_notification'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                    await user_send(pet.user_id, messages['notifications']['min_value_satiety'].format(config['food']['min_value']))
-                if pet.happiness < config['play']['min_value']:
-                    data['last_notification'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                    await user_send(pet.user_id, messages['notifications']['min_value_play'].format(config['play']['min_value']))
-                if pet.sleep < config['sleep']['min_value']:
-                    data['last_notification'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-                    await user_send(pet.user_id, messages['notifications']['min_value_sleep'].format(config['sleep']['min_value']))
+            last_notification = data.get("last_notification")
+            if last_notification == None or datetime.now() - datetime.strptime(
+                last_notification, "%Y-%m-%d %H:%M:%S.%f"
+            ) > timedelta(minutes=config["engine"]["notification_time"]):
+                if pet.health < config["engine"]["health_min_value"]:
+                    data["last_notification"] = datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S.%f"
+                    )
+                    await user_send(
+                        pet.user_id,
+                        messages["notifications"]["min_value_health"].format(
+                            config["engine"]["health_min_value"]
+                        ),
+                    )
+                if pet.satiety < config["food"]["min_value"]:
+                    data["last_notification"] = datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S.%f"
+                    )
+                    await user_send(
+                        pet.user_id,
+                        messages["notifications"]["min_value_satiety"].format(
+                            config["food"]["min_value"]
+                        ),
+                    )
+                if pet.happiness < config["play"]["min_value"]:
+                    data["last_notification"] = datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S.%f"
+                    )
+                    await user_send(
+                        pet.user_id,
+                        messages["notifications"]["min_value_play"].format(
+                            config["play"]["min_value"]
+                        ),
+                    )
+                if pet.sleep < config["sleep"]["min_value"]:
+                    data["last_notification"] = datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S.%f"
+                    )
+                    await user_send(
+                        pet.user_id,
+                        messages["notifications"]["min_value_sleep"].format(
+                            config["sleep"]["min_value"]
+                        ),
+                    )
                 pet.data = str(data)
                 await session.commit()
 
