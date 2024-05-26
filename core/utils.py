@@ -1,7 +1,6 @@
 import telebot
 import re
 import textwrap
-import ast
 from sqlalchemy import func
 from datetime import datetime, timedelta
 import random
@@ -10,6 +9,19 @@ import os
 
 from core import config, logging, messages, bot
 from core.database import States, AsyncSessionLocal, Pet, db, get_data, get_inventory
+
+
+async def escape_text(text):
+    def replace(match):
+        text = match.group(0)
+        text = text.replace("&", "&amp;")
+        text = text.replace("<", "&lt;")
+        text = text.replace(">", "&gt;")
+        return text
+    
+    # Regular expression to match text outside of HTML tags
+    pattern = re.compile(r'(?s)(?:(<[^>]*>)|([^<]*))')
+    return pattern.sub(lambda match: match.group(1) if match.group(1) else replace(match), text)
 
 
 async def generate_markup(buttons, buttons_in_row=2, special_buttons=None, special_buttons_in_row=None):
@@ -44,10 +56,11 @@ async def owner_send(message):
 
 
 async def user_send(user_id, message, markup=None):
+    message = await escape_text(message)
     if markup:
-        await bot.send_message(user_id, message, reply_markup=markup)
+        await bot.send_message(user_id, message, reply_markup=markup, parse_mode='HTML')
     else:
-        await bot.send_message(user_id, message)
+        await bot.send_message(user_id, message, parse_mode='HTML')
 
 
 async def remove_patterns(input_text):    
@@ -184,6 +197,15 @@ async def split_text(text, max_length):
             split_paragraphs.extend(wrapped_lines)
 
     return split_paragraphs
+
+
+async def get_index_state(index, parameter):
+    states_dict = messages.get('indexes_states', {}).get(parameter, {})
+    index = int(index)  # Преобразуем индекс к целому числу
+    for interval, state_list in states_dict.items():
+        interval_start, interval_end = map(int, interval.strip('[]').split(', '))
+        if interval_start <= index <= interval_end:
+            return random.choice(state_list)
 
 
 async def create_info_image(user_id):

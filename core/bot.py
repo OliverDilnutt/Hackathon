@@ -1,6 +1,6 @@
 from core import bot, messages, logging
 from core.interface import check_triggers, show_interface, parse_food, parse_games
-from core.utils import generate_markup, remove_patterns, get_current_page, update_current_page, get_total_items, get_current_category, get_message_for_delete, set_message_for_delete, journey_images
+from core.utils import generate_markup, remove_patterns, get_current_page, update_current_page, get_total_items, get_current_category, get_message_for_delete, set_message_for_delete, escape_text
 from core.database import set_state, AsyncSessionLocal, States, db
 from core.engine import break_collect_food
 
@@ -97,6 +97,7 @@ async def main_handler(message):
                 )
             
             if img != "None":
+                text = await escape_text(text)
                 await bot.send_photo(
                     message.chat.id, photo=img, caption=text, reply_markup=markup, parse_mode='HTML'
                 )

@@ -14,7 +14,7 @@ from core.database import (
     get_inventory
 )
 
-from core.utils import generate_markup, create_info_image, egg_show, get_current_page, generate_paginated_markup, update_current_category, update_current_page, get_player_rank, user_send, journey_images
+from core.utils import generate_markup, create_info_image, egg_show, get_current_page, generate_paginated_markup, update_current_category, update_current_page, get_player_rank, user_send, journey_images, get_index_state
 from core.engine import (
     new_pet,
     save_pet_name,
@@ -133,14 +133,34 @@ async def parse_hatching_check(user_id):
                 return markup
 
 
+async def parse_start_button(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            if pet.status == "hatching":
+                buttons = messages['buttons']['start']['normal']
+                markup = await generate_markup(buttons)
+                return markup
+            else:
+                buttons = messages['buttons']['start']['already_reg']
+                markup = await generate_markup(buttons)
+                return markup
+        else:
+            buttons = messages['buttons']['start']['normal']
+            markup = await generate_markup(buttons)
+            return markup
+
+
 async def parse_actions(user_id, buttons_in_row=None):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
         if pet:
-            buttons = messages["buttons"]["actions_buttons"][pet.state]
-            markup = await generate_markup(buttons)
-            return markup
+            if pet.status == 'live':
+                buttons = messages["buttons"]["actions_buttons"][pet.state]
+                markup = await generate_markup(buttons)
+                return markup
 
 
 async def parse_games(user_id, buttons_in_row=None):
@@ -183,40 +203,41 @@ async def parse_food_amount(user_id, buttons_in_row=None):
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
     if pet:
-        food = (await get_data(pet.id))["selected_food"]
-        food_amount = (await get_inventory(pet.id))[food]["amount"]
-        buttons = []
+        if pet.status == 'live' and pet.status !='hatching':
+            food = (await get_data(pet.id))["selected_food"]
+            food_amount = (await get_inventory(pet.id))[food]["amount"]
+            buttons = []
 
-        feed_index = config["food"]["list"][food]["feed_index"]
-        max_amount = min(ceil((100 - pet.satiety) / int(feed_index)), food_amount)
+            feed_index = config["food"]["list"][food]["feed_index"]
+            max_amount = min(ceil((100 - pet.satiety) / int(feed_index)), food_amount)
 
-        button_text = messages["interfaces"]["select_amount_food"]["buttons_style"]
+            button_text = messages["interfaces"]["select_amount_food"]["buttons_style"]
 
-        buttons.append(button_text.format(1, min(pet.satiety + feed_index, 100)))
-        if food_amount > 2 and pet.satiety + feed_index < 100:
-            buttons.append(
-                button_text.format(
-                    round((max_amount + 1) / 2),
-                    (
-                        min(pet.satiety
-                        + (
-                            round((max_amount + 1) / 2)
-                            * feed_index
-                        ), 100)
-                    ),
-                )
-            )
-            if min(pet.satiety + (round((max_amount + 1) / 2) * feed_index), 100) < 100:
+            buttons.append(button_text.format(1, min(pet.satiety + feed_index, 100)))
+            if food_amount > 2 and pet.satiety + feed_index < 100:
                 buttons.append(
-                    button_text.format(max_amount, min(pet.satiety + max_amount*feed_index, 100))
+                    button_text.format(
+                        round((max_amount + 1) / 2),
+                        (
+                            min(pet.satiety
+                            + (
+                                round((max_amount + 1) / 2)
+                                * feed_index
+                            ), 100)
+                        ),
+                    )
                 )
+                if min(pet.satiety + (round((max_amount + 1) / 2) * feed_index), 100) < 100:
+                    buttons.append(
+                        button_text.format(max_amount, min(pet.satiety + max_amount*feed_index, 100))
+                    )
 
-        actions = [messages["buttons"]["actions"]]
-        if buttons_in_row is not None:
-            markup = await generate_markup(buttons, buttons_in_row=buttons_in_row, special_buttons=actions, special_buttons_in_row=1)
-        else:
-            markup = await generate_markup(buttons, special_buttons=actions, special_buttons_in_row=1)
-        return markup
+            actions = [messages["buttons"]["actions"]]
+            if buttons_in_row is not None:
+                markup = await generate_markup(buttons, buttons_in_row=buttons_in_row, special_buttons=actions, special_buttons_in_row=1)
+            else:
+                markup = await generate_markup(buttons, special_buttons=actions, special_buttons_in_row=1)
+            return markup
     else:
         return await generate_markup(messages["buttons"]["main_menu"])
 
@@ -308,15 +329,26 @@ async def format_pet_info(user_id):
                 age_time_name = messages["time_names"][age[1]]
                 agreed_word = morph.parse(age_time_name)[0]
                 agreed_word = agreed_word.make_agree_with_number(age[0]).word
+                
+                health_state = await get_index_state(pet.health, 'health')
+                satiety_state = await get_index_state(pet.satiety, 'satiety')
+                happiness_state = await get_index_state(pet.happiness, 'happiness')
+                sleep_state = await get_index_state(pet.sleep,'sleep')
+                
+                
                 text = text.format(
                     pet.name,
                     messages["statuses"][pet.status],
                     messages["states"][pet.state],
                     f"{age[0]} {agreed_word}",
+                    health_state,
                     pet.health,
+                    satiety_state,
                     pet.satiety,
+                    happiness_state,
                     pet.happiness,
-                    pet.sleep,
+                    sleep_state,
+                    pet.sleep
                 )
                 return True, text
             else:
@@ -385,16 +417,19 @@ async def save_selected_food(user_id, input):
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
         if pet:
-            food_list = {key: value for key, value in inventory_items.items() if value['class'] == 'food'}
-            for name, data in food_list.items():
-                if input in data["name"]:
-                    data = await get_data(pet.id)
-                    data["selected_food"] = name
-                    pet.data = str(data)
-                    await session.commit()
-                    return True, ""
+            if pet.status == 'live' and pet.status != 'hatching':
+                food_list = {key: value for key, value in inventory_items.items() if value['class'] == 'food'}
+                for name, data in food_list.items():
+                    if input in data["name"]:
+                        data = await get_data(pet.id)
+                        data["selected_food"] = name
+                        pet.data = str(data)
+                        await session.commit()
+                        return True, ""
+                else:
+                    return False, messages["errors"]["food_not_found"]
             else:
-                return False, messages["errors"]["food_not_found"]
+                return False, messages["errors"]["dead"]
         else:
             return False, messages["errors"]["not_have_pet"]
 
@@ -404,13 +439,16 @@ async def feed_interface(user_id, input):
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
         if pet:
-            data = await get_data(pet.id)
-            food = data["selected_food"]
-            status, text = await feed(pet.id, food, input)
-            if status:
-                return True, ""
+            if pet.status == 'live' and pet.status != 'hatching':
+                data = await get_data(pet.id)
+                food = data["selected_food"]
+                status, text = await feed(pet.id, food, input)
+                if status:
+                    return True, ""
+                else:
+                    return False, text
             else:
-                return False, text
+                return False, messages["errors"]["dead"]
         else:
             return False, messages["errors"]["not_have_pet"]
 
@@ -663,3 +701,15 @@ async def back_home_interface(user_id):
         else:
             return False, messages["errors"]["not_have_pet"]
     
+    
+async def open_actions(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            if pet.status == 'live':
+                    return True, ""
+            else:
+                return False, messages["errors"]["dead"]
+        else:
+            return False, messages["errors"]["not_have_pet"]
