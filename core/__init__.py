@@ -4,7 +4,7 @@ import os
 import logging
 from datetime import datetime
 import gzip
-import glob
+from dotenv import load_dotenv
 import yaml
 import pymorphy3
 
@@ -96,6 +96,8 @@ async def init_models():
 
 
 # Инициализация бота
-bot = AsyncTeleBot(config["secret"]["telegram_token"])
+load_dotenv()
+
+bot = AsyncTeleBot(os.getenv("TELEGRAM_TOKEN"))
 logging.info("Бот запущен")
 print("Бот запущен")

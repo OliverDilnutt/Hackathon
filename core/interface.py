@@ -99,6 +99,7 @@ async def show_interface(user_id, interface_name, input=False):
                     text = func_text
             else:
                 text = func_text
+                return text, "None", "None"
 
     if type(markup) is not list:
         markup_func = globals().get(markup)
@@ -455,14 +456,16 @@ async def save_selected_food(user_id, input):
                     for key, value in inventory_items.items()
                     if value["class"] == "food"
                 }
+                food_found = False
                 for name, data in food_list.items():
                     if input in data["name"]:
+                        food_found = True
                         data = await get_data(pet.id)
                         data["selected_food"] = name
                         pet.data = str(data)
                         await session.commit()
                         return True, ""
-                else:
+                if not food_found:
                     return False, messages["errors"]["food_not_found"]
             else:
                 return False, messages["errors"]["dead"]

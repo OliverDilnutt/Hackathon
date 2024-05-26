@@ -111,19 +111,33 @@ async def main_handler(message):
                     message.from_user.id, interface_name
                 )
 
+            text = await escape_text(text)
+            
             if img != "None":
-                text = await escape_text(text)
-                await bot.send_photo(
-                    message.chat.id,
-                    photo=img,
-                    caption=text,
-                    reply_markup=markup,
-                    parse_mode="HTML",
-                )
+                if markup != "None":
+                    await bot.send_photo(
+                        message.chat.id,
+                        photo=img,
+                        caption=text,
+                        reply_markup=markup,
+                        parse_mode="HTML"
+                    )
+                else:
+                    await bot.send_photo(
+                        message.chat.id,
+                        photo=img,
+                        caption=text,
+                        parse_mode="HTML"
+                    )
             else:
-                await bot.send_message(
-                    message.chat.id, text, reply_markup=markup, parse_mode="HTML"
-                )
+                if markup != "None":
+                    await bot.send_message(
+                        message.chat.id, text, reply_markup=markup, parse_mode="HTML"
+                    )
+                else:
+                    await bot.send_message(
+                        message.chat.id, text, parse_mode="HTML"
+                    )
 
         else:
             await bot.send_message(message.chat.id, interface_name, parse_mode="HTML")
