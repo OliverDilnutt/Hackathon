@@ -304,8 +304,6 @@ async def journey_images(user_id):
             background_file = background_files[random.randint(0, len(background_files) - 1)]
             background_path = os.path.join(messages['events']['journey'][data['journey_location']]['img'], background_file)
             background = Image.open(background_path, 'r')
-            background.save('test1.png')
-            print(2)
             return True, background
 
         else:

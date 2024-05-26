@@ -41,7 +41,7 @@ async def main_handler(message):
             elif category == 'games':
                 markup = await parse_games(user_id)
             
-            update = await bot.send_message(user_id, messages['buttons']['update_page'], reply_markup=markup)
+            update = await bot.send_message(user_id, messages['buttons']['update_page'], reply_markup=markup, parse_mode='HTML')
             await set_message_for_delete(user_id, update.id)
     elif message.text == messages['buttons']['next_page']:
         await bot.delete_message(message.chat.id, message.id)
@@ -66,7 +66,7 @@ async def main_handler(message):
         elif category == 'games':
             markup = await parse_games(user_id)
             
-        update = await bot.send_message(user_id, messages['buttons']['update_page'], reply_markup=markup)
+        update = await bot.send_message(user_id, messages['buttons']['update_page'], reply_markup=markup, parse_mode='HTML')
         await set_message_for_delete(user_id, update.id)
             
     else:
@@ -98,10 +98,10 @@ async def main_handler(message):
             
             if img != "None":
                 await bot.send_photo(
-                    message.chat.id, photo=img, caption=text, reply_markup=markup
+                    message.chat.id, photo=img, caption=text, reply_markup=markup, parse_mode='HTML'
                 )
             else:
-                await bot.send_message(message.chat.id, text, reply_markup=markup)
+                await bot.send_message(message.chat.id, text, reply_markup=markup, parse_mode='HTML')
 
         else:
-            await bot.send_message(message.chat.id, interface_name)
+            await bot.send_message(message.chat.id, interface_name, parse_mode='HTML')

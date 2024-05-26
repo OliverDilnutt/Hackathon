@@ -599,13 +599,15 @@ async def travel(id):
                         
                         # Если есть найденные предметы, добавляем их в инвентарь
                         if "found" in changes:
+                            inventory = await get_inventory(pet.id)
                             for item in changes["found"]:
                                 for name, amount in item.items():
-                                    pet.inventory.append({
-                                        "name": name,
-                                        "amount": amount,
-                                        "class": inventory_items[name]['class'],
-                                    })
+                                        inventory[next((item_name for item_name, item_data in inventory_items.items() if name == item_data['name']), None)] = {
+                                            "name": name,
+                                            "amount": amount,
+                                            "class": next((item_data['class'] for item_name, item_data in inventory_items.items() if name == item_data['name']), None)
+                                        }
+                            pet.inventory = str(inventory)
                         pet.data = str(data)
 
                         await session.commit()
@@ -708,6 +710,24 @@ async def level_up(id):
                 pet.experience += min(education_buff, config['level']['max_education_buff'])
 
             await session.commit()
+
+
+async def notifications(id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            db.select(Pet).filter(Pet.id == id, Pet.status == "live")
+        )
+        pet = result.scalar_one_or_none()
+        if pet:
+            if pet.health < config['health_min_value']:
+                await user_send(pet.user_id, messages['notifications']['min_value_health'])
+            if pet.satiety < config['food']['min_value']:
+                await user_send(pet.user_id, messages['notifications']['min_value_satiety'])
+            if pet.happiness < config['play']['min_value']:
+                await user_send(pet.user_id, messages['notifications']['min_value_play'])
+            if pet.sleep < config['sleep']['min_value']:
+                await user_send(pet.user_id, messages['notifications']['min_value_sleep'])
+
 
 # Automatic updates
 async def edit_pet():

@@ -476,7 +476,7 @@ async def get_inventory_interface(user_id):
         pet = result.scalar_one_or_none()
         if pet:
             inventory = await get_inventory(pet.id)
-            text = ""
+            text = messages["interfaces"]["inventory"]['text']
             for item_name, item_data in inventory.items():
                 text += messages["interfaces"]["inventory"]["item_text"].format(
                     item_data["name"], item_data["amount"]
@@ -577,6 +577,10 @@ async def finally_journey(user_id):
                     changes_text += f"😃 {changes['happiness']:+}\n"
                 if "sleep" in changes:
                     changes_text += f"🌙 {changes['sleep']:+}\n"
+                if "found" in changes:
+                    for found in changes['found']:
+                        for key, value in found.items():
+                            changes_text += f"+ {key}[{value}]\n"
                 
                 text += messages["interfaces"]["back_home"]["event_text"].format(idx + 1, f"{event['description']}\n{changes_text}")
             return True, text
