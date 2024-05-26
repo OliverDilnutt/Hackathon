@@ -317,21 +317,24 @@ async def play(id):
             data = await get_data(id)
             last_game = data.get("last_game")
             game = data["game"]
-            if last_game != game:
-                pet.happiness = min(pet.happiness + config["play"]["play_index"], 100)
-                await sleep_down(pet.id, config["play"]["sleep"], False)
-            else:
-                happiness = round(
-                    (pet.happiness + config["play"]["play_index"])
-                    * (100 - config["games"][game]["sleep"])
-                    // 100
-                )
-                await sleep_down(pet.id, config["games"][game]["sleep"], False)
-                pet.happiness = min(happiness, 100)
-            if pet.happiness == 100:
-                pet.state = "nothing"
-                await user_send(pet.user_id, messages["interfaces"]["play"]["finally"])
-            await session.commit()
+            game_id = next((game_id for game_id, game_info in config['games']["list"].items() if game_info["name"] == game), None)
+            if game_id is not None:
+                if last_game != game:
+                    pet.happiness = min(pet.happiness + config["play"]["play_index"], 100)
+                    
+                    await sleep_down(pet.id, config["games"]['list'][game_id]["sleep"], False)
+                else:
+                    happiness = round(
+                        (pet.happiness + config["play"]["play_index"])
+                        * (100 - config["games"]['list'][game_id]["sleep"])
+                        // 100
+                    )
+                    await sleep_down(pet.id, config["games"]['list'][game_id]["sleep"], False)
+                    pet.happiness = min(happiness, 100)
+                if pet.happiness == 100:
+                    pet.state = "nothing"
+                    await user_send(pet.user_id, messages["interfaces"]["play"]["finally"])
+                await session.commit()
 
 
 async def feed(id, food, amount):

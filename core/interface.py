@@ -740,9 +740,6 @@ async def back_home_interface(user_id):
                 if pet.state == "traveling":
                     pet.state = "nothing"
                     await session.commit()
-                    await user_send(
-                        user_id, messages["interfaces"]["back_home"]["text"]
-                    )
                     status, text = await finally_journey(user_id)
                     if status:
                         return True, text

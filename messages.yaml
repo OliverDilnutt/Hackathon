@@ -128,7 +128,7 @@ interfaces:
     img: "None"
     text: "💤 | Баю-бай, пришло время засыпать. Пора отдохнуть. zZ-zZ 🌙"
     finally: "🛏 | <b>{0}:</b> <i>Я выспался</i>"
-    min_sleep: "🚫 | <b>{0}:</b> <i>Я спать не хочу</i>"
+    min_sleep: "🚫 | <b>{0}:</b> <i>Я не хочу спать</i>"
     input: False
     func: "start_sleep_interface"
     buttons: "parse_actions"

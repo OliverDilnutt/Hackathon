@@ -2,13 +2,13 @@ collect_food:
   chance: 0.5
   max_collect_food: 50
 engine:
-  hatching_timer: 600
+  hatching_timer: 3
   health_index: 0
   health_min_value: 30
   notification_time: 30
   pet_tasks_time: 300
   sadness_index: 1
-  time_of_last_check: '2024-05-26T12:57:39.514127'
+  time_of_last_check: '2024-05-26T15:35:05.194651'
 food:
   collect_index: 2
   hunger_index: 1
@@ -78,7 +78,7 @@ play:
   zero_health_index: -10
 secret:
   owner_id: OWNER_ID
-  telegram_token: TOKEN
+  telegram_token: 7194321199:AAGTSs5duuyO-pGNq_Gpbq1IU8_AWZffmnk
 sleep:
   break_sleep_index: 5
   health_sleep_index: 1
