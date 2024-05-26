@@ -82,9 +82,9 @@ async def new_user(user_id):
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
         if not pet:
-            user = States(user_id=user_id)
-            session.add(user)
             if not user:
+                user = States(user_id=user_id)
+                session.add(user)
                 await session.commit()
             return True, ""
         return False, messages["errors"]["already_reg"]

@@ -174,7 +174,7 @@ async def sleep_down(id, auto=True, index=None):
             db.select(Pet).filter(Pet.id == id, Pet.status == "live")
         )
         pet = result.scalar_one_or_none()
-        if pet and pet.state != "sleeping":
+        if pet and pet.state not in ["sleeping", 'playing']:
             if auto:
                 pet.sleep = max(pet.sleep - config["sleep"]["sleep_down_index"], 0)
             else:
@@ -313,12 +313,14 @@ async def play(id):
             game = data["game"]
             if last_game != game:
                 pet.happiness = min(pet.happiness + config["play"]["play_index"], 100)
+                await sleep_down(pet.id, config["play"]["sleep"], False)
             else:
                 happiness = round(
                     (pet.happiness + config["play"]["play_index"])
-                    * (100 - config["play"]["play_again_index"])
+                    * (100 - config["games"][game]['sleep'])
                     // 100
                 )
+                await sleep_down(pet.id, config["games"][game]['sleep'], False)
                 pet.happiness = min(happiness, 100)
             if pet.happiness == 100:
                 pet.state = "nothing"
