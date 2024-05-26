@@ -213,6 +213,7 @@ interfaces:
     img: "None"
     text: "<b>Инвентарь:</b>\n"
     item_text: "- {0} [{1}]\n"
+    not_items: "У вас еще нету предметов"
     input: False
     func: "get_inventory_interface"
     buttons: 

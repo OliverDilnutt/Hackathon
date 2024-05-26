@@ -515,10 +515,13 @@ async def get_inventory_interface(user_id):
         if pet:
             inventory = await get_inventory(pet.id)
             text = messages["interfaces"]["inventory"]['text']
-            for item_name, item_data in inventory.items():
-                text += messages["interfaces"]["inventory"]["item_text"].format(
-                    item_data["name"], item_data["amount"]
-                )
+            if inventory != {}:
+                for item_name, item_data in inventory.items():
+                    text += messages["interfaces"]["inventory"]["item_text"].format(
+                        item_data["name"], item_data["amount"]
+                    )
+            else:
+                text = messages['interfaces']['inventory']['not_items']
             return True, text
         else:
             return False, messages["errors"]["not_have_pet"]
