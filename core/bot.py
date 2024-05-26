@@ -12,13 +12,6 @@ from core.utils import (
     escape_text,
 )
 from core.database import set_state, AsyncSessionLocal, States, db
-from core.engine import break_collect_food
-
-
-@bot.message_handler(commands=["help"])
-async def help_handler(message):
-    logging.warning(f"{message.from_user.id} - Использование /help")
-    await bot.send_message(message.chat.id, messages["bot"]["help"]["text"])
 
 
 @bot.message_handler(commands=["debug"])
