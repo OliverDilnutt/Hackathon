@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import random
 from PIL import Image, ImageFont, ImageDraw, ImageOps
 import os
+from math import floor
 
 from core import config, logging, messages, bot
 from core.database import States, AsyncSessionLocal, Pet, db, get_data, get_inventory
@@ -260,28 +261,28 @@ async def create_info_image(user_id):
 
             draw.text(
                 (100, panel_img.height / 2),
-                str(pet.health),
+                str(round(pet.health, 1)),
                 (255, 255, 255),
                 font=font,
                 anchor="mm",
             )
             draw.text(
                 (220, panel_img.height / 2),
-                str(pet.satiety),
+                str(round(pet.satiety, 1)),
                 (255, 255, 255),
                 font=font,
                 anchor="mm",
             )
             draw.text(
                 (338, panel_img.height / 2),
-                str(pet.happiness),
+                str(round(pet.happiness, 1)),
                 (255, 255, 255),
                 font=font,
                 anchor="mm",
             )
             draw.text(
                 (450, panel_img.height / 2),
-                str(pet.sleep),
+                str(round(pet.sleep, 1)),
                 (255, 255, 255),
                 font=font,
                 anchor="mm",

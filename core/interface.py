@@ -1,5 +1,5 @@
 from datetime import datetime
-from math import ceil
+from math import ceil, floor
 import random
 import re
 
@@ -399,13 +399,13 @@ async def format_pet_info(user_id):
                     messages["states"][pet.state],
                     f"{age[0]} {agreed_word}",
                     health_state,
-                    pet.health,
+                    round(pet.health, 1),
                     satiety_state,
-                    pet.satiety,
+                    round(pet.satiety, 1),
                     happiness_state,
-                    pet.happiness,
+                    round(pet.happiness, 1),
                     sleep_state,
-                    pet.sleep,
+                    round(pet.sleep, 1),
                 )
                 return True, text
             else:

@@ -755,6 +755,9 @@ async def level_up(id):
 
             elif pet.state == "traveling":
                 pet.experience += config["level"]["traveling"]
+            
+            elif pet.state == "nothing":
+                pet.experience += config["level"]["nothing"]
 
             experience_for_up_level = config["level"]["experience"] * (1.1) ** pet.level
             if pet.experience > experience_for_up_level:
