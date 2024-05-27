@@ -43,10 +43,15 @@ Windows
 4. Установите все необходимые зависимости, указанные в `requirements.txt` 
 ``` 
 pip install -r requirements.txt 
-``` 
-5. Заполните файл `config.yaml` 
-6. При необходимости измените `messages.yaml` 
-7. Запустите бота с помощью команды  
+```
+5. Установите переменную окружения  
+MacOS/Linux 
+```
+export TELEGRAM_TOKEN=<TOKEN>
+```
+6. При необходимости измените `config.yaml` 
+7. При необходимости измените `messages.yaml` 
+9. Запустите бота с помощью команды  
 ``` 
 python3 start.py 
 ``` 
