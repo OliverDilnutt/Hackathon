@@ -717,8 +717,9 @@ async def check_indexes(id):
 
 async def final_hatching_after_restart(id):
     data = await get_data(id)
-    start_hatching = datetime.strptime(data.get("start_hatching"), "%Y-%m-%d %H:%M:%S.%f")
+    start_hatching = data.get("start_hatching")
     if start_hatching != None:
+        start_hatching = datetime.strptime(start_hatching, "%Y-%m-%d %H:%M:%S.%f")
         now = datetime.now()
         elapsed_seconds = (now - start_hatching).seconds
         hatching_timer = config["engine"]["hatching_timer"]
