@@ -69,7 +69,10 @@ async def user_send(user_id, message, markup=None):
 
 
 async def remove_patterns(input_text):
-    patterns = [r" \(\S+\)$", r" \[\d+\]$"]
+    patterns = [
+        r" \(\S+\)$",  # удаляет текст в скобках (например, "(текст)")
+        r" \[\d+\]$",  # удаляет числа в квадратных скобках (например, "[123]")
+    ]
     for pattern in patterns:
         input_text = re.sub(pattern, "", input_text)
     return input_text
