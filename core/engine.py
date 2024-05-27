@@ -717,24 +717,25 @@ async def check_indexes(id):
 
 async def final_hatching_after_restart(id):
     data = await get_data(id)
-    start_hatching = datetime.strptime(data["start_hatching"], "%Y-%m-%d %H:%M:%S.%f")
-    now = datetime.now()
-    elapsed_seconds = (now - start_hatching).seconds
-    hatching_timer = config["engine"]["hatching_timer"]
-    if elapsed_seconds >= hatching_timer:
-        async with AsyncSessionLocal() as session:
-            result = await session.execute(db.select(Pet).filter(Pet.id == id))
-            pet = result.scalar_one_or_none()
-            pet.status = "live"
-            pet.born = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
-            await session.commit()
-            await user_send(
-                pet.user_id,
-                messages["interfaces"]["hatching_finally"]["text"],
-                await generate_markup(
-                    messages["interfaces"]["hatching_finally"]["buttons"]
-                ),
-            )
+    start_hatching = datetime.strptime(data.get("start_hatching"), "%Y-%m-%d %H:%M:%S.%f")
+    if start_hatchong != None:
+        now = datetime.now()
+        elapsed_seconds = (now - start_hatching).seconds
+        hatching_timer = config["engine"]["hatching_timer"]
+        if elapsed_seconds >= hatching_timer:
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(db.select(Pet).filter(Pet.id == id))
+                pet = result.scalar_one_or_none()
+                pet.status = "live"
+                pet.born = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
+                await session.commit()
+                await user_send(
+                    pet.user_id,
+                    messages["interfaces"]["hatching_finally"]["text"],
+                    await generate_markup(
+                        messages["interfaces"]["hatching_finally"]["buttons"]
+                    ),
+                )
 
 
 async def level_up(id):
