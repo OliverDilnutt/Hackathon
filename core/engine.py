@@ -740,7 +740,10 @@ async def final_hatching_after_restart(id):
 
 async def level_up(id):
     time_start_activity = (await get_data(id))["time_start_activity"]
-    if time_start_activity // config["level"]["level_up_for_activity_by_time"] > 1:
+    time_start_activity = datetime.strptime(time_start_activity, '%Y-%m-%d %H:%M:%S.%f')
+    current_time = datetime.now()
+    activity_duration = (current_time - time_start_activity).total_seconds()
+    if activity_duration // config["level"]["level_up_for_activity_by_time"] > 1:
         async with AsyncSessionLocal() as session:
             result = await session.execute(db.select(Pet).filter(Pet.id == id))
             pet = result.scalar_one_or_none()
@@ -759,19 +762,16 @@ async def level_up(id):
             elif pet.state == "nothing":
                 pet.experience += config["level"]["nothing"]
 
-            experience_for_up_level = config["level"]["experience"] * (1.1) ** pet.level
+            experience_for_up_level = round(config["level"]["experience"] * (1.1) ** pet.level)
             if pet.experience > experience_for_up_level:
                 pet.level += 1
                 pet.experience = 0
 
-            async with AsyncSessionLocal() as session:
-                result = await session.execute(db.select(Pet).filter(Pet.id == id))
-                pet = result.scalar_one_or_none()
-                data = get_data(id)
-                education_buff = data["education"] // 10
-                pet.experience += min(
-                    education_buff, config["level"]["max_education_buff"]
-                )
+            data = await get_data(id)
+            education_buff = data["education"] // 10
+            pet.experience += min(
+                education_buff, config["level"]["max_education_buff"]
+            )
 
             await session.commit()
 

@@ -638,7 +638,7 @@ async def ranking(user_id):
         for pet in sorted_pets:
             user = await bot.get_chat(pet.user_id)
             text += messages["interfaces"]["rank"]["user_text"].format(
-                user.username, pet.level, pet.experience
+                user.username, pet.level, pet.experience, round(config["level"]["experience"] * (1.1) ** pet.level)
             )
 
         return True, text

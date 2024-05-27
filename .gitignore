@@ -6,3 +6,4 @@ logs/
 bot.db
 launch.json
 .vscode/
+.env
