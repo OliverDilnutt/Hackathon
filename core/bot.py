@@ -111,7 +111,7 @@ async def main_handler(message):
                     message.from_user.id, interface_name
                 )
 
-            text = await escape_text(text)
+            # text = await escape_text(text)
             
             if img != "None":
                 if markup != "None":
