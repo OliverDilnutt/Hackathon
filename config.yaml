@@ -2,13 +2,13 @@ collect_food:
   chance: 0.9
   max_collect_food: 50
 engine:
-  hatching_timer: 3
+  hatching_timer: 60
   health_index: 0
   health_min_value: 30
   notification_time: 300
   pet_tasks_time: 300
   sadness_index: 1
-  time_of_last_check: '2024-05-26T22:51:08.260443'
+  time_of_last_check: '2024-05-27T14:56:34.125219'
 food:
   collect_index: 2
   hunger_index: 1

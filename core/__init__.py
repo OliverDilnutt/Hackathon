@@ -97,7 +97,11 @@ async def init_models():
 
 # Инициализация бота
 load_dotenv()
-
-bot = AsyncTeleBot(os.getenv("TELEGRAM_TOKEN"))
-logging.info("Бот запущен")
-print("Бот запущен")
+if os.getenv('TELEGRAM_TOKEN') is not None:
+    bot = AsyncTeleBot(os.getenv("TELEGRAM_TOKEN"))
+    logging.info("Бот запущен")
+    print("Бот запущен")
+else:
+    logging.critical("Отсутствует переменная окружения TELEGRAM_TOKEN")
+    print("Отсутствует переменная окружения TELEGRAM_TOKEN")
+    exit()

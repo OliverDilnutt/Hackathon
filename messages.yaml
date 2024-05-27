@@ -292,11 +292,7 @@ interfaces:
     input: True
     next_state: started_journey
     func: "select_location_interface"
-    buttons:
-      - "10"
-      - "30"
-      - "60"
-      - "120"
+    buttons: parse_time_journey
   
   started_journey:
     trigger: ""
@@ -376,7 +372,12 @@ buttons:
       - "🍡 | Начать играть"
     already_reg:
       - "❗ | Инфо"
-      
+  time_journey:
+    - "10"
+    - "30"
+    - "60"
+    - "120"
+    - "🕹 | Действия"
 
   main_menu: "Главное меню"
   actions: "🕹 | Действия"
@@ -402,6 +403,7 @@ errors:
   not_hatch: "🚫 | Черепашка еще не вылупилась"
   not_traveling: "🚫 | Черепашка не путешествует"
   not_have_events: "🚫 | Никаких событий в путешествие не произошло"
+  location_not_found: "🚫 | Локация не найдена"
 
 states:
   nothing: "Ничего не делаю 💭"

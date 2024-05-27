@@ -12,6 +12,7 @@ from core.database import (
     db,
     get_data,
     get_inventory,
+    set_state
 )
 
 from core.utils import (
@@ -25,7 +26,7 @@ from core.utils import (
     get_player_rank,
     user_send,
     journey_images,
-    get_index_state,
+    get_index_state
 )
 from core.engine import (
     new_pet,
@@ -99,7 +100,7 @@ async def show_interface(user_id, interface_name, input=False):
                     text = func_text
             else:
                 text = func_text
-                return text, "None", "None"
+                # return text, "None", "None"
 
     if type(markup) is not list:
         markup_func = globals().get(markup)
@@ -221,38 +222,41 @@ async def parse_food_amount(user_id, buttons_in_row=None):
         pet = result.scalar_one_or_none()
     if pet:
         if pet.status == "live" and pet.status != "hatching":
-            food = (await get_data(pet.id))["selected_food"]
-            food_amount = (await get_inventory(pet.id))[food]["amount"]
-            buttons = []
+            food = (await get_data(pet.id)).get("selected_food")
+            if food != None:
+                food_amount = (await get_inventory(pet.id))[food]["amount"]
+                buttons = []
 
-            feed_index = config["food"]["list"][food]["feed_index"]
-            max_amount = min(ceil((100 - pet.satiety) / int(feed_index)), food_amount)
+                feed_index = config["food"]["list"][food]["feed_index"]
+                max_amount = min(ceil((100 - pet.satiety) / int(feed_index)), food_amount)
 
-            button_text = messages["interfaces"]["select_amount_food"]["buttons_style"]
+                button_text = messages["interfaces"]["select_amount_food"]["buttons_style"]
 
-            buttons.append(button_text.format(1, min(pet.satiety + feed_index, 100)))
-            if food_amount > 2 and pet.satiety + feed_index < 100:
-                buttons.append(
-                    button_text.format(
-                        round((max_amount + 1) / 2),
-                        (
-                            min(
-                                pet.satiety
-                                + (round((max_amount + 1) / 2) * feed_index),
-                                100,
-                            )
-                        ),
-                    )
-                )
-                if (
-                    min(pet.satiety + (round((max_amount + 1) / 2) * feed_index), 100)
-                    < 100
-                ):
+                buttons.append(button_text.format(1, min(pet.satiety + feed_index, 100)))
+                if food_amount > 2 and pet.satiety + feed_index < 100:
                     buttons.append(
                         button_text.format(
-                            max_amount, min(pet.satiety + max_amount * feed_index, 100)
+                            round((max_amount + 1) / 2),
+                            (
+                                min(
+                                    pet.satiety
+                                    + (round((max_amount + 1) / 2) * feed_index),
+                                    100,
+                                )
+                            ),
                         )
                     )
+                    if (
+                        min(pet.satiety + (round((max_amount + 1) / 2) * feed_index), 100)
+                        < 100
+                    ):
+                        buttons.append(
+                            button_text.format(
+                                max_amount, min(pet.satiety + max_amount * feed_index, 100)
+                            )
+                        )
+            else:
+                return "None"
 
             actions = [messages["buttons"]["actions"]]
             if buttons_in_row is not None:
@@ -285,6 +289,26 @@ async def parse_locations(user_id, buttons_in_row=None):
         location_names, current_page, items_per_page, buttons_in_row
     )
     return markup
+
+
+async def parse_time_journey(user_id):
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+        pet = result.scalar_one_or_none()
+        if pet:
+            if pet.status == "live":
+                data = await  get_data(pet.id)
+                location = data.get('location')
+                if location is not None:
+                    buttons = messages["buttons"]["time_journey"]
+                    markup = await generate_markup(buttons)
+                    return markup
+                else:
+                    await set_state(pet.id, 'nothing')
+                    markup = await generate_markup(messages["buttons"]['actions_buttons']['nothing'])
+                    return markup
+            else:
+                return False, messages["interfaces"]["time_journey"]["out_of_time"]
 
 
 async def hatching_interface(user_id):
@@ -640,9 +664,11 @@ async def select_location_interface(user_id, input):
             for location_name, location_data in messages["events"]["journey"].items():
                 if location_data["name"] == input:
                     data["journey_location"] = location_name
-            pet.data = str(data)
-            await session.commit()
-            return True, ""
+                    pet.data = str(data)
+                    await session.commit()
+                    return True, ""
+            else:
+                return False, messages["errors"]["location_not_found"]
         else:
             return False, messages["errors"]["not_have_pet"]
 
@@ -718,18 +744,22 @@ async def start_journey_interface(user_id, input):
         pet = result.scalar_one_or_none()
         if pet:
             data = await get_data(pet.id)
-            if input.isdigit():
-                data["journey_duration"] = int(input)
-                data["events"] = []
-                pet.data = str(data)
-                await session.commit()
-                status, text = await start_journey(pet.id)
-                if status:
-                    return True, ""
+            location = data.get('journey_location')
+            if location is not None:
+                if input.isdigit():
+                    data["journey_duration"] = int(input)
+                    data["events"] = []
+                    pet.data = str(data)
+                    await session.commit()
+                    status, text = await start_journey(pet.id)
+                    if status:
+                        return True, ""
+                    else:
+                        return False, text
                 else:
-                    return False, text
+                    return False, messages["errors"]["not_int"]
             else:
-                return False, messages["errors"]["not_int"]
+                return False, messages["errors"]["location_not_found"]
         else:
             return False, messages["errors"]["not_have_pet"]
 
