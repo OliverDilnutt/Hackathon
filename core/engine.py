@@ -740,41 +740,42 @@ async def final_hatching_after_restart(id):
 
 
 async def level_up(id):
-    time_start_activity = (await get_data(id))["time_start_activity"]
-    time_start_activity = datetime.strptime(time_start_activity, '%Y-%m-%d %H:%M:%S.%f')
-    current_time = datetime.now()
-    activity_duration = (current_time - time_start_activity).total_seconds()
-    if activity_duration // config["level"]["level_up_for_activity_by_time"] > 1:
-        async with AsyncSessionLocal() as session:
-            result = await session.execute(db.select(Pet).filter(Pet.id == id))
-            pet = result.scalar_one_or_none()
-            if pet.state == "playing":
-                pet.experience += config["level"]["playing"]
+    time_start_activity = (await get_data(id)).get("time_start_activity")
+    if time_start_activity is not None:
+        time_start_activity = datetime.strptime(time_start_activity, '%Y-%m-%d %H:%M:%S.%f')
+        current_time = datetime.now()
+        activity_duration = (current_time - time_start_activity).total_seconds()
+        if activity_duration // config["level"]["level_up_for_activity_by_time"] > 1:
+            async with AsyncSessionLocal() as session:
+                result = await session.execute(db.select(Pet).filter(Pet.id == id))
+                pet = result.scalar_one_or_none()
+                if pet.state == "playing":
+                    pet.experience += config["level"]["playing"]
 
-            elif pet.state == "sleeping":
-                pet.experience += config["level"]["sleeping"]
+                elif pet.state == "sleeping":
+                    pet.experience += config["level"]["sleeping"]
 
-            elif pet.state == "collecting":
-                pet.experience += config["level"]["collecting"]
+                elif pet.state == "collecting":
+                    pet.experience += config["level"]["collecting"]
 
-            elif pet.state == "traveling":
-                pet.experience += config["level"]["traveling"]
-            
-            elif pet.state == "nothing":
-                pet.experience += config["level"]["nothing"]
+                elif pet.state == "traveling":
+                    pet.experience += config["level"]["traveling"]
+                
+                elif pet.state == "nothing":
+                    pet.experience += config["level"]["nothing"]
 
-            experience_for_up_level = round(config["level"]["experience"] * (1.1) ** pet.level)
-            if pet.experience > experience_for_up_level:
-                pet.level += 1
-                pet.experience = 0
+                experience_for_up_level = round(config["level"]["experience"] * (1.1) ** pet.level)
+                if pet.experience > experience_for_up_level:
+                    pet.level += 1
+                    pet.experience = 0
 
-            data = await get_data(id)
-            education_buff = data["education"] // 10
-            pet.experience += min(
-                education_buff, config["level"]["max_education_buff"]
-            )
+                data = await get_data(id)
+                education_buff = data["education"] // 10
+                pet.experience += min(
+                    education_buff, config["level"]["max_education_buff"]
+                )
 
-            await session.commit()
+                await session.commit()
 
 
 async def notifications(id):
