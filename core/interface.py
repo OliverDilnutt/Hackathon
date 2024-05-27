@@ -298,7 +298,7 @@ async def parse_time_journey(user_id):
         if pet:
             if pet.status == "live":
                 data = await  get_data(pet.id)
-                location = data.get('location')
+                location = data.get('journey_location')
                 if location is not None:
                     buttons = messages["buttons"]["time_journey"]
                     markup = await generate_markup(buttons)
