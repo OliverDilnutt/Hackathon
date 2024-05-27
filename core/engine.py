@@ -849,6 +849,7 @@ async def edit_pet():
                 await check_indexes(pet.id)
                 await collect_food(pet.id)
                 await travel(pet.id)
+                await level_up(pet.id)
                 await notifications(pet.id)
 
 
