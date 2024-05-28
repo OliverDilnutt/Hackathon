@@ -360,7 +360,7 @@ async def feed(id, food, amount):
                                     amount = int(amount)
                                     if inventory[food]["amount"] - amount >= 0:
                                         inventory[food]["amount"] -= amount
-                                        pet.satiety = min(pet.satiety + index, 100)
+                                        pet.satiety = min(pet.satiety + index*amount, 100)
                                         pet.inventory = str(inventory)
                                         await session.commit()
                                         return True, ""

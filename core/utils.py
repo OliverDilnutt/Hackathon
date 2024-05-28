@@ -354,19 +354,22 @@ async def journey_images(user_id):
         )
         pet = pet.scalar_one_or_none()
         if pet:
-            data = await get_data(pet.id)
-            background_files = os.listdir(
-                messages["events"]["journey"][data["journey_location"]]["img"]
-            )
-            background_file = background_files[
-                random.randint(0, len(background_files) - 1)
-            ]
-            background_path = os.path.join(
-                messages["events"]["journey"][data["journey_location"]]["img"],
-                background_file,
-            )
-            background = Image.open(background_path, "r")
-            return True, background
+            if pet.state == 'traveling':
+                data = await get_data(pet.id)
+                background_files = os.listdir(
+                    messages["events"]["journey"][data["journey_location"]]["img"]
+                )
+                background_file = background_files[
+                    random.randint(0, len(background_files) - 1)
+                ]
+                background_path = os.path.join(
+                    messages["events"]["journey"][data["journey_location"]]["img"],
+                    background_file,
+                )
+                background = Image.open(background_path, "r")
+                return True, background
+            else:
+                return False, None
 
         else:
             return False, None

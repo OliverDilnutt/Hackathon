@@ -8,7 +8,7 @@ engine:
   notification_time: 1800
   pet_tasks_time: 300
   sadness_index: 0.3
-  time_of_last_check: '2024-05-28T01:27:09.880565'
+  time_of_last_check: '2024-05-28T03:43:20.264020'
 food:
   collect_index: 2
   hunger_index: 0.1

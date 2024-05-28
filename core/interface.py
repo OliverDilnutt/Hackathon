@@ -227,32 +227,32 @@ async def parse_food_amount(user_id, buttons_in_row=None):
                 food_amount = (await get_inventory(pet.id))[food]["amount"]
                 buttons = []
 
-                feed_index = config["food"]["list"][food]["feed_index"]
-                max_amount = min(ceil((100 - pet.satiety) / int(feed_index)), food_amount)
+                feed_index = inventory_items[food]["feed_index"]
+                max_amount = round(min(ceil((100 - pet.satiety) / int(feed_index)), food_amount))
 
                 button_text = messages["interfaces"]["select_amount_food"]["buttons_style"]
 
-                buttons.append(button_text.format(1, min(pet.satiety + feed_index, 100)))
+                buttons.append(button_text.format(1, round(min(pet.satiety + feed_index, 100), 1)))
                 if food_amount > 2 and pet.satiety + feed_index < 100:
                     buttons.append(
                         button_text.format(
                             round((max_amount + 1) / 2),
                             (
-                                min(
+                                round(min(
                                     pet.satiety
-                                    + (round((max_amount + 1) / 2) * feed_index),
+                                    + (round(((max_amount + 1) / 2) * feed_index), 1),
                                     100,
-                                )
+                                ))
                             ),
                         )
                     )
                     if (
-                        min(pet.satiety + (round((max_amount + 1) / 2) * feed_index), 100)
+                        min(pet.satiety + ((max_amount + 1) / 2) * feed_index), 100
                         < 100
                     ):
                         buttons.append(
                             button_text.format(
-                                max_amount, min(pet.satiety + max_amount * feed_index, 100)
+                                max_amount, round(min(pet.satiety + max_amount * feed_index, 100), 1)
                             )
                         )
             else:
@@ -712,28 +712,31 @@ async def get_journey_info(user_id):
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
         if pet:
-            data = await get_data(pet.id)
-            events = data.get("events")
-            if events is None or events == []:
-                return True, messages["errors"]["not_have_events"]
-            text = events[-1]["description"]
+            if pet.state == 'traveling':
+                data = await get_data(pet.id)
+                events = data.get("events")
+                if events is None or events == []:
+                    return True, messages["errors"]["not_have_events"]
+                text = events[-1]["description"]
 
-            words = re.findall(r"\w+", text)
+                words = re.findall(r"\w+", text)
 
-            replaced_words = words[:]
+                replaced_words = words[:]
 
-            # Заменить случайные слова на ##
-            words_to_replace = len(words) // config["journey"]["words_to_replace"]
+                # Заменить случайные слова на ##
+                words_to_replace = len(words) // config["journey"]["words_to_replace"]
 
-            # Заменить случайные слова
-            indices_to_replace = random.sample(range(len(words)), words_to_replace)
-            for i in indices_to_replace:
-                replaced_words[i] = config["journey"]["replace_to"]
+                # Заменить случайные слова
+                indices_to_replace = random.sample(range(len(words)), words_to_replace)
+                for i in indices_to_replace:
+                    replaced_words[i] = config["journey"]["replace_to"]
 
-            # Собрать текст из замененных слов
-            text = " ".join(replaced_words)
+                # Собрать текст из замененных слов
+                text = " ".join(replaced_words)
 
-            return True, text
+                return True, text
+            else:
+                return False, messages["errors"]["not_traveling"]
         else:
             return False, messages["errors"]["not_have_pet"]
 
