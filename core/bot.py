@@ -94,7 +94,7 @@ async def main_handler(message):
         finish = time.time()
         res = finish - start_check
         res_msec = res * 1000
-        print('Время работы check_triggers в миллисекундах: ', res_msec)
+        # print('Время работы check_triggers в миллисекундах: ', res_msec)
 
         
         if status:
@@ -123,7 +123,7 @@ async def main_handler(message):
                 finish = time.time()
                 res = finish - start_interface
                 res_msec = res * 1000
-                print('Время работы show_interface в миллисекундах: ', res_msec)
+                # print('Время работы show_interface в миллисекундах: ', res_msec)
                 
 
             # text = await escape_text(text)
@@ -160,4 +160,4 @@ async def main_handler(message):
         finish = time.time()
         res = finish - start_send
         res_msec = res * 1000
-        print('Время работы send в миллисекундах: ', res_msec)
+        # print('Время работы send в миллисекундах: ', res_msec)

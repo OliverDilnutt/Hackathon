@@ -13,7 +13,8 @@ from core import messages
 
 Base = declarative_base()
 load_dotenv()
-DATABASE_URL = f"mysql+aiomysql://{os.getenv('USER')}:{os.getenv('PASSWORD')}@{os.getenv('HOST')}:3306/{os.getenv('DB')}"
+# DATABASE_URL = f"mysql+aiomysql://{os.getenv('USER')}:{os.getenv('PASSWORD')}@{os.getenv('HOST')}:3306/{os.getenv('DB')}"
+DATABASE_URL = f"postgresql+asyncpg://{os.getenv('USER')}:{os.getenv('PASSWORD')}@{os.getenv('HOST')}:5432/{os.getenv('DB')}"
 engine_db = create_async_engine(DATABASE_URL, echo=False)
 AsyncSessionLocal = sessionmaker(bind=engine_db, class_=AsyncSession, expire_on_commit=False)
 
