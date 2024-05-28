@@ -44,6 +44,8 @@ from core.engine import (
     start_journey,
 )
 
+import time
+
 
 async def check_triggers(user_id, text):
     async with AsyncSessionLocal() as session:
@@ -53,13 +55,18 @@ async def check_triggers(user_id, text):
         state = result.scalar_one_or_none()
 
         for interface_name, interface_data in messages["interfaces"].items():
-            if text in interface_data["trigger"]:
+            triggers = interface_data.get("trigger", [])
+            if not triggers:  # Если триггер пуст, то пропускаем его
+                continue
+
+            if text in triggers:
                 return True, False, interface_name
-        else:
-            if state is not None and state.state is not None:
-                return True, text, interface_name
-            else:
-                return False, False, messages["interfaces"]["not_found"]["text"]
+
+        if state is not None and state.state is not None:
+            if messages['interfaces'].get(state.state)['input'] == True:
+                return True, text, state.state
+
+        return False, False, messages["interfaces"]["not_found"]["text"]
 
 
 async def show_interface(user_id, interface_name, input=False):
@@ -580,9 +587,10 @@ async def get_inventory_interface(user_id):
             text = messages["interfaces"]["inventory"]["text"]
             if inventory != {}:
                 for item_name, item_data in inventory.items():
-                    text += messages["interfaces"]["inventory"]["item_text"].format(
-                        item_data["name"], item_data["amount"]
-                    )
+                    if item_data['amount'] > 0:
+                        text += messages["interfaces"]["inventory"]["item_text"].format(
+                            item_data["name"], item_data["amount"]
+                        )
             else:
                 text = messages["interfaces"]["inventory"]["not_items"]
             return True, text

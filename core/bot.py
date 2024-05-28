@@ -13,6 +13,8 @@ from core.utils import (
 )
 from core.database import set_state, AsyncSessionLocal, States, db
 
+import time
+
 
 @bot.message_handler(commands=["debug"])
 async def debug(message):
@@ -85,9 +87,16 @@ async def main_handler(message):
         await set_message_for_delete(user_id, update.id)
 
     else:
+        start_check = time.time()
         status, input, interface_name = await check_triggers(
             message.from_user.id, message.text
         )
+        finish = time.time()
+        res = finish - start_check
+        res_msec = res * 1000
+        print('Время работы check_triggers в миллисекундах: ', res_msec)
+
+        
         if status:
             if input:
                 async with AsyncSessionLocal() as session:
@@ -106,13 +115,19 @@ async def main_handler(message):
                         message.from_user.id, interface_name, input
                     )
             else:
+                start_interface = time.time()
                 await set_state(message.from_user.id, interface_name)
                 text, img, markup = await show_interface(
                     message.from_user.id, interface_name
                 )
+                finish = time.time()
+                res = finish - start_interface
+                res_msec = res * 1000
+                print('Время работы show_interface в миллисекундах: ', res_msec)
+                
 
             # text = await escape_text(text)
-            
+            start_send = time.time()
             if img != "None":
                 if markup != "None":
                     await bot.send_photo(
@@ -141,3 +156,8 @@ async def main_handler(message):
 
         else:
             await bot.send_message(message.chat.id, interface_name, parse_mode="HTML")
+            
+        finish = time.time()
+        res = finish - start_send
+        res_msec = res * 1000
+        print('Время работы send в миллисекундах: ', res_msec)

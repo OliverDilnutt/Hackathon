@@ -4,7 +4,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import ast
-import ast
+import asyncio
+from aioprocessing import AioProcess
 
 from core import messages
 
@@ -55,12 +56,17 @@ class Stats(Base):
     type = db.Column(db.String)
 
 
+
+async def run_literal_eval(data):
+        return ast.literal_eval(data)
+
+
 async def get_data(id):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.id == id))
         pet = result.scalar_one_or_none()
         if pet:
-            return ast.literal_eval(pet.data)
+            return await run_literal_eval(pet.data)
         return {}
 
 
@@ -69,7 +75,7 @@ async def get_inventory(id):
         result = await session.execute(db.select(Pet).filter(Pet.id == id))
         pet = result.scalar_one_or_none()
         if pet:
-            return ast.literal_eval(pet.inventory)
+            return await run_literal_eval(pet.inventory)
         return {}
 
 
