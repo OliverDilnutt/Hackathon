@@ -20,7 +20,7 @@ AsyncSessionLocal = sessionmaker(bind=engine_db, class_=AsyncSession, expire_on_
 class Pet(Base):
     __tablename__ = "pet"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.BigInteger, primary_key=True)
     user_id = db.Column(db.BigInteger, nullable=False)
     name = db.Column(db.String(50), nullable=True)
     health = db.Column(db.Float, default=100)
