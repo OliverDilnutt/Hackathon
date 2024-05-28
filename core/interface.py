@@ -450,19 +450,19 @@ async def start_play_interface(user_id, input):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
         pet = result.scalar_one_or_none()
-        if pet:
-            for name, data in config["games"]["list"].items():
-                if input in data["name"]:
-                    status, text = await start_play(pet.id, input)
-                    if status:
-                        text = messages["interfaces"]["play"]["text"].format(input)
-                        return True, text
-                    else:
-                        return False, text
-            else:
-                return False, messages["errors"]["game_not_found"]
+    if pet:
+        for name, data in config["games"]["list"].items():
+            if input in data["name"]:
+                status, text = await start_play(pet.id, input)
+                if status:
+                    text = messages["interfaces"]["play"]["text"].format(input)
+                    return True, text
+                else:
+                    return False, text
         else:
-            return False, messages["errors"]["not_have_pet"]
+            return False, messages["errors"]["game_not_found"]
+    else:
+        return False, messages["errors"]["not_have_pet"]
 
 
 async def break_play_interface(user_id):
@@ -731,7 +731,7 @@ async def get_journey_info(user_id):
 
                 replaced_words = words[:]
 
-                # Заменить случайные слова на ##
+                # Заменить случайные слова на ###
                 words_to_replace = len(words) // config["journey"]["words_to_replace"]
 
                 # Заменить случайные слова

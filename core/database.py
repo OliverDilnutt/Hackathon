@@ -4,37 +4,37 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import ast
-import asyncio
+import os
+from dotenv import load_dotenv
 from aioprocessing import AioProcess
 
 from core import messages
 
 
 Base = declarative_base()
-engine_db = create_async_engine("sqlite+aiosqlite:///bot.db", echo=False)
-AsyncSessionLocal = sessionmaker(
-    bind=engine_db, class_=AsyncSession, expire_on_commit=False
-)
-
+load_dotenv()
+DATABASE_URL = f"mysql+aiomysql://{os.getenv('USER')}:{os.getenv('PASSWORD')}@{os.getenv('HOST')}:3306/{os.getenv('DB')}"
+engine_db = create_async_engine(DATABASE_URL, echo=False)
+AsyncSessionLocal = sessionmaker(bind=engine_db, class_=AsyncSession, expire_on_commit=False)
 
 class Pet(Base):
     __tablename__ = "pet"
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
-    name = db.Column(db.String, nullable=True)
+    name = db.Column(db.String(50), nullable=True)
     health = db.Column(db.Float, default=100)
     satiety = db.Column(db.Float, default=100)
     happiness = db.Column(db.Float, default=100)
     sleep = db.Column(db.Float, default=100)
-    born = db.Column(db.String, nullable=True)
-    death = db.Column(db.String, nullable=True)
-    data = db.Column(db.String, default="{}")
-    inventory = db.Column(db.String, default="{}")
+    born = db.Column(db.String(50), nullable=True)
+    death = db.Column(db.String(50), nullable=True)
+    data = db.Column(db.String(1000), default="{}")
+    inventory = db.Column(db.String(1000), default="{}")
     level = db.Column(db.Integer, default=1)
     experience = db.Column(db.Integer, default=0)
-    state = db.Column(db.String, default="nothing")
-    status = db.Column(db.Integer, default="hatching")
+    state = db.Column(db.String(50), default="nothing")
+    status = db.Column(db.String(50), default="hatching")
 
 
 class States(Base):
@@ -42,9 +42,9 @@ class States(Base):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
-    state = db.Column(db.String, nullable=True)
+    state = db.Column(db.String(50), nullable=True)
     current_page = db.Column(db.Integer, default=1)
-    current_category = db.Column(db.String, nullable=True)
+    current_category = db.Column(db.String(50), nullable=True)
     msg_for_delete = db.Column(db.Integer, nullable=True)
 
 
@@ -53,7 +53,7 @@ class Stats(Base):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer)
-    type = db.Column(db.String)
+    type = db.Column(db.String(50))
 
 
 
@@ -81,25 +81,27 @@ async def get_inventory(id):
 
 async def new_user(user_id):
     async with AsyncSessionLocal() as session:
-        result = await session.execute(
-            db.select(States).filter(States.user_id == user_id)
-        )
-        user = result.scalar_one_or_none()
-        result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
-        pet = result.scalar_one_or_none()
-        if not pet:
-            if not user:
-                user = States(user_id=user_id)
-                session.add(user)
-                await session.commit()
-            return True, ""
-        return False, messages["errors"]["already_reg"]
+        async with session.begin():
+            result = await session.execute(
+                db.select(States).filter(States.user_id == user_id)
+            )
+            user = result.scalar_one_or_none()
+            result = await session.execute(db.select(Pet).filter(Pet.user_id == user_id))
+            pet = result.scalar_one_or_none()
+            if not pet:
+                if not user:
+                    user = States(user_id=user_id)
+                    session.add(user)
+                    await session.commit()
+                return True, ""
+            return False, messages["errors"]["already_reg"]
 
 
 async def set_state(id, state):
     async with AsyncSessionLocal() as session:
-        result = await session.execute(db.select(States).filter(States.user_id == id))
-        user = result.scalar_one_or_none()
-        if user:
-            user.state = state
-            await session.commit()
+        async with session.begin():
+            result = await session.execute(db.select(States).filter(States.user_id == id))
+            user = result.scalar_one_or_none()
+            if user:
+                user.state = state
+                await session.commit()

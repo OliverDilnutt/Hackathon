@@ -90,13 +90,14 @@ async def get_current_page(user_id):
 
 async def update_current_page(user_id, new_page):
     async with AsyncSessionLocal() as session:
-        state = await session.execute(
-            db.select(States).filter(States.user_id == user_id)
-        )
-        state = state.scalar_one_or_none()
-        if state:
-            state.current_page = new_page
-        await session.commit()
+        async with session.begin():
+            state = await session.execute(
+                db.select(States).filter(States.user_id == user_id)
+            )
+            state = state.scalar_one_or_none()
+            if state:
+                state.current_page = new_page
+            await session.commit()
 
 
 async def generate_paginated_markup(items, page, items_per_page, buttons_in_row):
@@ -132,13 +133,14 @@ async def generate_paginated_markup(items, page, items_per_page, buttons_in_row)
 
 async def set_message_for_delete(user_id, message_id):
     async with AsyncSessionLocal() as session:
-        state = await session.execute(
-            db.select(States).filter(States.user_id == user_id)
-        )
-        state = state.scalar_one_or_none()
-        if state:
-            state.msg_for_delete = message_id
-        await session.commit()
+        async with session.begin():
+            state = await session.execute(
+                db.select(States).filter(States.user_id == user_id)
+            )
+            state = state.scalar_one_or_none()
+            if state:
+                state.msg_for_delete = message_id
+            await session.commit()
 
 
 async def get_message_for_delete(user_id):
@@ -171,13 +173,14 @@ async def get_total_items(user_id, category):
 
 async def update_current_category(user_id, category):
     async with AsyncSessionLocal() as session:
-        states = await session.execute(
-            db.select(States).filter(States.user_id == user_id)
-        )
-        state = states.scalar_one_or_none()
-        if state:
-            state.current_category = category
-        await session.commit()
+        async with session.begin():
+            states = await session.execute(
+                db.select(States).filter(States.user_id == user_id)
+            )
+            state = states.scalar_one_or_none()
+            if state:
+                state.current_category = category
+            await session.commit()
 
 
 async def get_current_category(user_id):
@@ -193,15 +196,16 @@ async def get_current_category(user_id):
 
 async def save_time_start_activity(pet_id):
     async with AsyncSessionLocal() as session:
-        pet = await session.execute(db.select(Pet).filter(Pet.id == pet_id))
-        pet = pet.scalar_one_or_none()
-        if pet:
-            data = await get_data(pet_id)
-            data["time_start_activity"] = datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S.%f"
-            )
-            pet.data = str(data)
-        await session.commit()
+        async with session.begin_nested():
+            pet = await session.execute(db.select(Pet).filter(Pet.id == pet_id))
+            pet = pet.scalar_one_or_none()
+            if pet:
+                data = await get_data(pet_id)
+                data["time_start_activity"] = datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S.%f"
+                )
+                pet.data = str(data)
+            await session.commit()
 
 
 async def get_player_rank(user_id, sorted_pets):
