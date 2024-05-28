@@ -21,7 +21,7 @@ class Pet(Base):
     __tablename__ = "pet"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer(99999999999), nullable=False)
+    user_id = db.Column(db.BigInteger, nullable=False)
     name = db.Column(db.String(50), nullable=True)
     health = db.Column(db.Float, default=100)
     satiety = db.Column(db.Float, default=100)
