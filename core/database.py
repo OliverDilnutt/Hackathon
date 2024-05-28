@@ -40,20 +40,20 @@ class Pet(Base):
 class States(Base):
     __tablename__ = "states"
 
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
+    id = db.Column(db.BigInteger, primary_key=True)
+    user_id = db.Column(db.BigInteger, nullable=False)
     state = db.Column(db.String(50), nullable=True)
     current_page = db.Column(db.Integer, default=1)
     current_category = db.Column(db.String(50), nullable=True)
     msg_for_delete = db.Column(db.Integer, nullable=True)
 
 
-class Stats(Base):
-    __tablename__ = "stats"
+# class Stats(Base):
+#     __tablename__ = "stats"
 
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer)
-    type = db.Column(db.String(50))
+#     id = db.Column(db.Integer, primary_key=True)
+#     user_id = db.Column(db.Integer)
+#     type = db.Column(db.String(50))
 
 
 
