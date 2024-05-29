@@ -634,8 +634,8 @@ async def ranking(user_id):
         pets = result.scalars().all()
         sorted_pets = sorted(pets, key=lambda pet: (-pet.level, -pet.experience))
         user_send_rank = await get_player_rank(user_id, sorted_pets)
-        text = messages["interfaces"]["rank"]["text"].format(user_send_rank)
-        for pet in sorted_pets:
+        text = messages["interfaces"]["rank"]["text"].format(user_send_rank, len(sorted_pets))
+        for pet in sorted_pets[:20]:
             user = await bot.get_chat(pet.user_id)
             text += messages["interfaces"]["rank"]["user_text"].format(
                 user.username, pet.level, pet.experience, round(config["level"]["experience"] * (1.1) ** pet.level)
