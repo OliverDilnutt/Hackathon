@@ -240,19 +240,14 @@ async def parse_food_amount(user_id, buttons_in_row=None):
                 button_text = messages["interfaces"]["select_amount_food"]["buttons_style"]
 
                 buttons.append(button_text.format(1, round(min(pet.satiety + feed_index, 100), 1)))
-                if food_amount > 2 and pet.satiety + feed_index < 100:
-                    buttons.append(
-                        button_text.format(
-                            round((max_amount + 1) / 2),
-                            (
-                                round(min(
-                                    pet.satiety
-                                    + (round(((max_amount + 1) / 2) * feed_index), 1),
-                                    100,
-                                ))
-                            ),
+                if food_amount > 1 and pet.satiety + feed_index < 100:
+                    if max_amount > round((max_amount + 1) / 2):
+                        buttons.append(
+                            button_text.format(
+                                round((max_amount + 1) / 2),
+                                round(min(pet.satiety + round(((max_amount + 1) / 2) * feed_index, 1), 100))
+                            )
                         )
-                    )
                     if min((pet.satiety + ((max_amount + 1) / 2) * feed_index), 100) < 100:
                         buttons.append(
                             button_text.format(
