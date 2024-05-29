@@ -18,10 +18,10 @@ async def new_pet(user_id):
             if not pet:
                 pet = Pet(user_id=user_id)
                 session.add(pet)
-                await session.commit()  # Сначала сохраняем питомца, чтобы получить его id
+                # await session.commit()  # Сначала сохраняем питомца, чтобы получить его id
                 
-                # Получаем id только что сохраненного питомца
-                await session.refresh(pet)
+                # # Получаем id только что сохраненного питомца
+                # await session.refresh(pet)
                 
                 files_pets = os.listdir(config["imgs"]["path_pets_folder"])
                 files_rooms = os.listdir(config["imgs"]["path_rooms_folder"])
