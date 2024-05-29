@@ -253,10 +253,7 @@ async def parse_food_amount(user_id, buttons_in_row=None):
                             ),
                         )
                     )
-                    if (
-                        min(pet.satiety + ((max_amount + 1) / 2) * feed_index), 100
-                        < 100
-                    ):
+                    if min((pet.satiety + ((max_amount + 1) / 2) * feed_index), 100) < 100:
                         buttons.append(
                             button_text.format(
                                 max_amount, round(min(pet.satiety + max_amount * feed_index, 100), 1)

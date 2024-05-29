@@ -18,6 +18,7 @@ async def new_pet(user_id):
             if not pet:
                 pet = Pet(user_id=user_id)
                 session.add(pet)
+                await session.commit()  # Сначала сохраняем питомца, чтобы получить его id
 
                 files_pets = os.listdir(config["imgs"]["path_pets_folder"])
                 files_rooms = os.listdir(config["imgs"]["path_rooms_folder"])
@@ -32,6 +33,8 @@ async def new_pet(user_id):
                     random.randint(0, len(files_backgrounds) - 1)
                 ]
                 random_egg = files_eggs[random.randint(0, len(files_eggs) - 1)]
+                
+                # Теперь, когда pet сохранен в базу данных, можно использовать его id
                 data = await get_data(pet.id)
                 data["pet_img"] = random_pet
                 data["room_img"] = random_room
