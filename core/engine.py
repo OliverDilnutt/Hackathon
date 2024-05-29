@@ -770,6 +770,10 @@ async def level_up(id):
                         if pet.experience > experience_for_up_level:
                             pet.level += 1
                             pet.experience = 0
+                            await user_send(
+                                pet.user_id,
+                                messages["notifications"]["level_up"].format(pet.level)
+                            )
 
                         education_buff = data["education"] // 10
                         pet.experience += min(education_buff, config["level"]["max_education_buff"])

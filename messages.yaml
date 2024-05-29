@@ -634,6 +634,7 @@ notifications:
   min_value_satiety: "🚨 | <b>Уровень сытости ниже:</b> {0}"
   min_value_play: "🚨 | <b>Уровень радости ниже:</b> {0}"
   min_value_sleep: "🚨 | <b>Уровень сна ниже:</b> {0}"
+  level_up: "📈 | Ваш уровень повышен ({0})"
 
 time_names:
   days: "день"
