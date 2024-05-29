@@ -45,10 +45,10 @@ turtle_food:
   can_find: false
   class: 'food'
 precious_stone:
-  name: Драгоценный камень
+  name: 💎 Драгоценный камень
   can_find: true
   class: 'jewelry'
 pearl:
-  name: Жемчужина
+  name: 🐚 Жемчужина
   can_find: true
   class: 'jewelry'

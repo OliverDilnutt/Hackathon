@@ -702,6 +702,8 @@ async def finally_journey(user_id):
                     changes_text += f"😃 {changes['happiness']:+}\n"
                 if "sleep" in changes:
                     changes_text += f"🌙 {changes['sleep']:+}\n"
+                if "education" in changes:
+                    changes_text += f"🎓 {changes['education']:+}\n"
                 if "found" in changes:
                     for found in changes["found"]:
                         for key, value in found.items():
