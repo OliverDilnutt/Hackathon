@@ -63,9 +63,15 @@ async def owner_send(message):
 async def user_send(user_id, message, markup=None):
     message = await escape_text(message)
     if markup:
-        await bot.send_message(user_id, message, reply_markup=markup, parse_mode="HTML")
+        try:
+            await bot.send_message(user_id, message, reply_markup=markup, parse_mode="HTML")
+        except:
+            pass
     else:
-        await bot.send_message(user_id, message, parse_mode="HTML")
+        try:
+            await bot.send_message(user_id, message, parse_mode="HTML")
+        except:
+            pass
 
 
 async def remove_patterns(input_text):
