@@ -630,7 +630,7 @@ async def user_info(user_id):
 
 async def ranking(user_id):
     async with AsyncSessionLocal() as session:
-        result = await session.execute(db.select(Pet))
+        result = await session.execute(db.select(Pet).filter(Pet.status = 'live'))
         pets = result.scalars().all()
         sorted_pets = sorted(pets, key=lambda pet: (-pet.level, -pet.experience))
         user_send_rank = await get_player_rank(user_id, sorted_pets)
