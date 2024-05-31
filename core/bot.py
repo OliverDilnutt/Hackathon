@@ -138,24 +138,36 @@ async def main_handler(message):
                         parse_mode="HTML"
                     )
                 else:
-                    await bot.send_photo(
-                        message.chat.id,
-                        photo=img,
-                        caption=text,
-                        parse_mode="HTML"
-                    )
+                    try:
+                        await bot.send_photo(
+                            message.chat.id,
+                            photo=img,
+                            caption=text,
+                            parse_mode="HTML"
+                        )
+                    except:
+                        pass
             else:
                 if markup != "None":
-                    await bot.send_message(
-                        message.chat.id, text, reply_markup=markup, parse_mode="HTML"
-                    )
+                    try:
+                        await bot.send_message(
+                            message.chat.id, text, reply_markup=markup, parse_mode="HTML"
+                        )
+                    except:
+                        pass
                 else:
-                    await bot.send_message(
-                        message.chat.id, text, parse_mode="HTML"
-                    )
+                    try:
+                        await bot.send_message(
+                            message.chat.id, text, parse_mode="HTML"
+                        )
+                    except:
+                        pass
 
         else:
-            await bot.send_message(message.chat.id, interface_name, parse_mode="HTML")
+            try:
+                await bot.send_message(message.chat.id, interface_name, parse_mode="HTML")
+            except:
+                pass
             
         finish = time.time()
         res = finish - start_send
