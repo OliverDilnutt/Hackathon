@@ -854,6 +854,7 @@ async def edit_pet():
                 await sleep_down(pet.id)
                 await play(pet.id)
                 await sleep(pet.id)
+                await health(pet.id)
                 await check_indexes(pet.id)
                 await collect_food(pet.id)
                 await travel(pet.id)
