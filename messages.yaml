@@ -457,7 +457,7 @@ events:
           description: Черепашка случайно наступила на медузу и получила ожог.
           class: bad
           changes:
-            health: -15
+            health: -8
             happiness: -5
         4:
           description: Черепашка нашла пещеру и смогла насладиться прохладой и тишиной.
@@ -480,7 +480,7 @@ events:
           description: Встреча с ядовитой змеей. Черепашка смогла увернуться, но испугалась и теперь осторожничает.
           class: bad
           changes:
-            health: -15
+            health: -8
             education: +5
             sleep: -5
         3:
