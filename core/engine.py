@@ -212,7 +212,7 @@ async def health(id, index=None, auto=True):
             pet = result.scalar_one_or_none()
             if pet:
                 if auto:
-                    pet.health = max(pet.health - config["engine"]["health_index"], 0)
+                    pet.health = min(pet.health + config["engine"]["health_index"], 100)
                 else:
                     if index > 0:
                         pet.health = min(pet.health + index, 100)
