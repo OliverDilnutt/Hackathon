@@ -64,7 +64,7 @@ journey:
   words_to_replace: 4
 level:
   collecting: 10
-  experience: 100
+  experience: 1000
   level_up_for_activity_by_time: 300
   max_education_buff: 40
   nothing: 5
