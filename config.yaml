@@ -59,7 +59,7 @@ imgs:
   path_rooms_folder: imgs/rooms/
 journey:
   event_in_journey: 0.5
-  min_health: 15
+  min_health: 30
   replace_to: '###'
   words_to_replace: 4
 level:
