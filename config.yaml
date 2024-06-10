@@ -3,7 +3,7 @@ collect_food:
   max_collect_food: 50
 engine:
   hatching_timer: 60
-  health_index: 1
+  health_index: 0.1
   health_min_value: 30
   notification_time: 1800
   pet_tasks_time: 300
