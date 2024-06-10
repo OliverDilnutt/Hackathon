@@ -1,31 +1,31 @@
 algae:
   name: 🌿 Водоросли
   chance: 0.3
-  feed_index: 3
+  feed_index: 5
   can_find: true
   class: 'food'
 apple:
   name: 🍎 Яблоко
   chance: 0.3
-  feed_index: 3
+  feed_index: 7
   can_find: true
   class: 'food'
 berry:
   name: 🍇 Ягоды
   chance: 0.5
-  feed_index: 1
+  feed_index: 3
   can_find: true
   class: 'food'
 bread:
   name: 🍞 Хлеб
   chance: 0.2
-  feed_index: 4
+  feed_index: 5
   can_find: true
   class: 'food'
 carrot:
   name: 🥕 Морковь
   chance: 0.5
-  feed_index: 2
+  feed_index: 3
   can_find: true
   class: 'food'
 fish:
@@ -36,7 +36,7 @@ fish:
 lettuce:
   name: 🥬 Салат
   chance: 0.2
-  feed_index: 3
+  feed_index: 5
   can_find: true
   class: 'food'
 turtle_food:
