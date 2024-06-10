@@ -187,7 +187,7 @@ interfaces:
   choose_amount_collect_food:
     trigger: ""
     img: "None"
-    text: "🌾 | Черепашка отправилась собирает еду"
+    text: "🌾 | Черепашка отправилась собирать еду"
     input: False
     func: "start_collect_food_interface"
     buttons: "parse_actions"
