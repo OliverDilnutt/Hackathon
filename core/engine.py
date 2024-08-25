@@ -1,4 +1,4 @@
-from core import config, logging, messages, bot, config_path, inventory_items
+from core import config, logging, messages, bot, morph, config_path, inventory_items
 from core.database import Pet, AsyncSessionLocal, get_data, db, get_inventory
 from core.utils import user_send, generate_markup, save_time_start_activity
 
@@ -221,6 +221,27 @@ async def health(id, index=None, auto=True):
                 await session.commit()
 
 
+# async def get_age(id):
+#     async with AsyncSessionLocal() as session:
+#         result = await session.execute(db.select(Pet).filter(Pet.id == id))
+#         pet = result.scalar_one_or_none()
+#         if pet:
+#             born = datetime.strptime(pet.born, "%Y-%m-%d %H:%M:%S.%f")
+#             if pet.status == "live":
+#                 age = datetime.now() - born
+#             else:
+#                 death = datetime.strptime(pet.death, "%Y-%m-%d %H:%M:%S.%f")
+#                 age = death - born
+#             if age.days > 0:
+#                 return age.days, "days"
+#             elif age.seconds // 3600 > 0:
+#                 return age.seconds // 3600, "hours"
+#             elif age.seconds // 60 > 0:
+#                 return age.seconds // 60, "minutes"
+#             else:
+#                 return age.seconds, "seconds"
+
+
 async def get_age(id):
     async with AsyncSessionLocal() as session:
         result = await session.execute(db.select(Pet).filter(Pet.id == id))
@@ -228,18 +249,49 @@ async def get_age(id):
         if pet:
             born = datetime.strptime(pet.born, "%Y-%m-%d %H:%M:%S.%f")
             if pet.status == "live":
-                age = datetime.now() - born
+                now = datetime.now()
             else:
                 death = datetime.strptime(pet.death, "%Y-%m-%d %H:%M:%S.%f")
-                age = death - born
-            if age.days > 0:
-                return age.days, "days"
-            elif age.seconds // 3600 > 0:
-                return age.seconds // 3600, "hours"
-            elif age.seconds // 60 > 0:
-                return age.seconds // 60, "minutes"
-            else:
-                return age.seconds, "seconds"
+                now = death
+
+            delta = now - born
+
+            days = delta.days
+            seconds = delta.seconds
+
+            months = (now.year - born.year) * 12 + now.month - born.month
+            if now.day < born.day:
+                months -= 1
+
+            days_in_current_month = (now.replace(day=1) - timedelta(days=1)).day
+            days = min(days_in_current_month, days)
+
+            weeks, days = divmod(days, 7)
+            hours, seconds = divmod(seconds, 3600)
+            minutes, seconds = divmod(seconds, 60)
+
+            time_parts = []
+
+            if months > 0:
+                agreed_word = morph.parse("месяц")[0].make_agree_with_number(months).word
+                time_parts.append(f"{months} {agreed_word}")
+            if weeks > 0:
+                agreed_word = morph.parse("неделя")[0].make_agree_with_number(weeks).word
+                time_parts.append(f"{weeks} {agreed_word}")
+            if days > 0:
+                agreed_word = morph.parse("день")[0].make_agree_with_number(days).word
+                time_parts.append(f"{days} {agreed_word}")
+            if hours > 0:
+                agreed_word = morph.parse("час")[0].make_agree_with_number(hours).word
+                time_parts.append(f"{hours} {agreed_word}")
+            if minutes > 0:
+                agreed_word = morph.parse("минута")[0].make_agree_with_number(minutes).word
+                time_parts.append(f"{minutes} {agreed_word}")
+            if seconds > 0:
+                agreed_word = morph.parse("секунда")[0].make_agree_with_number(seconds).word
+                time_parts.append(f"{seconds} {agreed_word}")
+
+            return ' '.join(time_parts)
 
 
 async def die(id):

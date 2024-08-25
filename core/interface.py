@@ -383,9 +383,9 @@ async def format_pet_info(user_id):
             if pet.status != "hatching":
                 text = messages["interfaces"]["main_menu"]["text"]
                 age = await get_age(pet.id)
-                age_time_name = messages["time_names"][age[1]]
-                agreed_word = morph.parse(age_time_name)[0]
-                agreed_word = agreed_word.make_agree_with_number(age[0]).word
+                # age_time_name = messages["time_names"][age[1]]
+                # agreed_word = morph.parse(age_time_name)[0]
+                # agreed_word = agreed_word.make_agree_with_number(age[0]).word
 
                 health_state = await get_index_state(pet.health, "health")
                 satiety_state = await get_index_state(pet.satiety, "satiety")
@@ -396,7 +396,8 @@ async def format_pet_info(user_id):
                     pet.name,
                     messages["statuses"][pet.status],
                     messages["states"][pet.state],
-                    f"{age[0]} {agreed_word}",
+                    # f"{age[0]} {agreed_word}",
+                    age,
                     health_state,
                     round(pet.health, 1),
                     satiety_state,
@@ -604,10 +605,10 @@ async def user_info(user_id):
                     items_amount += item_data["amount"]
 
                 age = await get_age(pet.id)
-                age_time_name = messages["time_names"][age[1]]
-                agreed_word = morph.parse(age_time_name)[0]
-                agreed_word = agreed_word.make_agree_with_number(age[0]).word
-                age = f"{age[0]} {agreed_word}"
+                # age_time_name = messages["time_names"][age[1]]
+                # agreed_word = morph.parse(age_time_name)[0]
+                # agreed_word = agreed_word.make_agree_with_number(age[0]).word
+                # age = f"{age[0]} {agreed_word}"
 
                 text = messages["interfaces"]["user_info"]["text"].format(
                     user.username,
